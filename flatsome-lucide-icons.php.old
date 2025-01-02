@@ -1,0 +1,50 @@
+<?php
+/*
+Plugin Name: Flatsome Lucide Icons
+Description: Adds Lucide icons support to the Flatsome theme using shortcodes.
+Version: 1.0
+Author: Kim Lukas Myrvold
+License: GPLv2 or later
+*/
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Enqueue Lucide library
+function flatsome_lucide_icons_enqueue()
+{
+    wp_enqueue_script(
+        'lucide-icons',
+        'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js',
+        array(),
+        null,
+        true
+    );
+    wp_add_inline_script(
+        'lucide-icons',
+        'document.addEventListener("DOMContentLoaded", function() { lucide.createIcons(); });'
+    );
+}
+add_action('wp_enqueue_scripts', 'flatsome_lucide_icons_enqueue');
+
+// Shortcode to render Lucide icons
+function flatsome_lucide_icon_shortcode($atts)
+{
+    $atts = shortcode_atts(
+        array(
+            'name' => 'circle', // Default icon
+            'size' => '24',     // Default size
+            'color' => '#000000', // Default color
+        ),
+        $atts,
+        'lucide_icon'
+    );
+
+    $icon_name = esc_attr($atts['name']);
+    $size = esc_attr($atts['size']);
+    $color = esc_attr($atts['color']);
+
+    return "<svg data-lucide='{$icon_name}' width='{$size}' height='{$size}' stroke='{$color}' fill='none' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'></svg>";
+}
+add_shortcode('lucide_icon', 'flatsome_lucide_icon_shortcode');
