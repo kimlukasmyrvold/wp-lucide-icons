@@ -42,20 +42,19 @@
         .wp_lucide_icons__dropdown__content {
             position: absolute;
             top: 30px;
-            left: -6px;
-            padding: .75rem;
+            left: -110px;
             gap: 1rem;
             z-index: 200000;
 
             display: none;
             flex-direction: column;
 
-            width: 400px;
+            width: 485px;
             max-height: 450px;
             overflow-y: auto;
 
-            border-radius: 7px;
-            background-color: #f0f0f0;
+            border-radius: 15px;
+            background-color: #fff;
             backdrop-filter: blur(5px);
             box-shadow: 0 0 3px #3f3f3f65;
 
@@ -63,16 +62,61 @@
                 display: flex;
             }
 
+            &__top {
+                position: sticky;
+                top: 0;
+                background-color: #fff;
+                z-index: 1;
+                padding: 1rem 1.5rem;
+                box-shadow: 0 3px 6px rgb(0 0 0 /.04);
+            }
+
+            .wp_lucide_icons__dropdown__content__title {
+                &__main {
+                    display: block;
+                    font-size: 1.4rem;
+                    font-weight: 600;
+                    margin-bottom: .25rem;
+                }
+
+                &__accent {
+                    color: #dc5a5a;
+                    font-size: inherit;
+                    font-weight: inherit;
+                }
+            }
 
             .wp_lucide_icons__dropdown__content__search {
                 display: flex;
                 flex-direction: column;
                 gap: .25rem;
 
-                input {
+                &__input {
+                    display: flex;
                     flex: 1;
-                    padding: 6px 7px;
-                    box-shadow: 0 0 3px #3f3f3f65;
+                    position: relative;
+                    border-radius: 7px;
+                    border: 1px solid transparent;
+
+                    svg {
+                        position: absolute;
+                        top: 50%;
+                        left: 0;
+                        translate: 0 -50%;
+                        padding-inline-start: 10px;
+                    }
+
+                    input {
+                        flex: 1;
+                        padding: 10px 10px 10px 40px;
+                        background-color: #f6f6f7;
+                        border-radius: inherit;
+                    }
+
+                    &:hover,
+                    &:focus-within {
+                        border-color: #dc5a5a;
+                    }
                 }
             }
 
@@ -82,15 +126,18 @@
                 place-items: center;
                 gap: .5rem;
                 isolation: isolate;
+                padding: 0 1.5rem 1rem 1.5rem;
+                overflow-x: clip;
 
                 .wp_lucide_icons__dropdown__content__icons__box {
                     cursor: pointer;
                     position: relative;
-                    padding: .5rem;
                     aspect-ratio: 1;
                     color: #404040;
-                    background-color: #e3e3e3;
-                    border-radius: 15px;
+                    background-color: #f6f6f7;
+                    padding: .5rem;
+                    border-radius: 7px;
+                    transition: all .15s ease;
 
                     span {
                         position: absolute;
@@ -101,16 +148,24 @@
                         bottom: -15px;
                         width: fit-content;
 
-                        color: #ddd;
-                        background-color: #4b2f36;
+                        white-space: nowrap;
+                        color: #fff;
+                        background-color: #dc5a5a;
                         border-radius: 5px;
                         padding: .15rem .25rem;
 
-                        display: none;
+                        opacity: 0;
+                        transform: scale(0);
+                        transition: opacity .2s ease, transform .2s ease;
                     }
 
-                    &:hover span {
-                        display: initial;
+                    &:hover {
+                        background-color: #e4e4e9;
+
+                        span {
+                            opacity: 1;
+                            transform: scale(1);
+                        }
                     }
                 }
             }

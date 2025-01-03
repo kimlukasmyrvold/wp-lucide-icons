@@ -15,14 +15,14 @@ if (!defined('ABSPATH')) {
 function lucide_icons_enqueue()
 {
     wp_enqueue_script(
-        'lucide-icons',
-        'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js',
+        'lucideicons',
+        'https://unpkg.com/lucide@latest',
         [],
         null,
         true
     );
     wp_add_inline_script(
-        'lucide-icons',
+        'lucideicons',
         'document.addEventListener("DOMContentLoaded", function() { lucide.createIcons(); });'
     );
 }
@@ -56,14 +56,25 @@ function lucide_icons_enqueue_admin($hook)
 {
     if ($hook === 'post.php' || $hook === 'post-new.php') {
         wp_enqueue_script(
-            'lucide-icons',
-            'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js',
+            'lucideicons',
+            'https://unpkg.com/lucide@latest',
             [],
             null,
             true
         );
-        wp_enqueue_script('my-tinymce-plugin', plugin_dir_url(__FILE__) . 'js/lucide-icons.js', ['jquery'], '1.0', true);
-        wp_enqueue_style('my-tinymce-style', plugin_dir_url(__FILE__) . 'css/main.css');
+        wp_enqueue_script(
+            'fuse',
+            'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js',
+            [],
+            null,
+            true
+        );
+        wp_enqueue_script('lucideicons_script', plugin_dir_url(__FILE__) . 'js/lucide-icons.js', ['jquery'], '1.0', true);
+        wp_localize_script('lucideicons_script', 'wpLucideIcons', array(
+            'ajaxUrl' => plugins_url('html/', __FILE__)
+        ));
+
+        wp_enqueue_style('lucideicons_style', plugin_dir_url(__FILE__) . 'css/main.css');
     }
 }
 add_action('admin_enqueue_scripts', 'lucide_icons_enqueue_admin');

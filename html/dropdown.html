@@ -8,11 +8,22 @@
     </div>
 
     <div class="wp_lucide_icons__dropdown__content" data-lucide_icons_open="false">
-        <div class="wp_lucide_icons__dropdown__content__search">
-            <label for="wp_lucide_icons__search_form">
-                Search all lucide.dev icons
-            </label>
-            <input id="wp_lucide_icons__search_form" type="text" placeholder="Search icons">
+        <div class="wp_lucide_icons__dropdown__content__top">
+            <div class="wp_lucide_icons__dropdown__content__title">
+                <p class="wp_lucide_icons__dropdown__content__title__main">
+                    WP <span class="wp_lucide_icons__dropdown__content__title__accent">Lucide</span> Icons
+                </p>
+            </div>
+            <div class="wp_lucide_icons__dropdown__content__search">
+                <label for="wp_lucide_icons__search_form" class="screen-reader-text">
+                    Search all lucide.dev icons
+                </label>
+                <div class="wp_lucide_icons__dropdown__content__search__input">
+                    <svg data-lucide='search' width='20' height='20' stroke='currentColor' fill='none' stroke-width='2'
+                        stroke-linecap='round' stroke-linejoin='round'></svg>
+                    <input id="wp_lucide_icons__search_form" type="text" placeholder="Search icons">
+                </div>
+            </div>
         </div>
         <div class="wp_lucide_icons__dropdown__content__icons"></div>
     </div>
