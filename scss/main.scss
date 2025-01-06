@@ -92,13 +92,16 @@
                 gap: .25rem;
 
                 &__input {
-                    display: flex;
-                    flex: 1;
                     position: relative;
-                    border-radius: 7px;
-                    border: 1px solid transparent;
 
-                    svg {
+                    display: flex;
+                    align-items: center;
+                    flex: 1;
+
+                    border: 1px solid transparent;
+                    border-radius: 7px;
+
+                    svg.lucide-search {
                         position: absolute;
                         top: 50%;
                         left: 0;
@@ -116,6 +119,19 @@
                     &:hover,
                     &:focus-within {
                         border-color: #dc5a5a;
+                    }
+
+                    input:placeholder-shown+button.wp_lucide_icons__dropdown__content__search__input__clear {
+                        display: none;
+                    }
+
+                    &__clear {
+                        cursor: pointer;
+                        position: absolute;
+                        top: 50%;
+                        right: 0;
+                        translate: 0 -50%;
+                        padding-inline-end: 10px;
                     }
                 }
             }

@@ -1,6 +1,6 @@
 (function () {
     function addDrinkToText(icon_name, size, color, stroke_width) {
-        editor.insertContent(`[lucide_icon name="${icon_name}" size="${size}" color="${color}" width="${stroke_width}"] `)
+        editor.insertContent(`<span style="display:inline-block">[lucide_icon name="${icon_name}" size="${size}" color="${color}" width="${stroke_width}"]</span> `)
         document.querySelector('#wp_lucide_icons .wp_lucide_icons__dropdown__content').dataset.lucide_icons_open = 'false'
     }
 
@@ -21,14 +21,16 @@
                     const button = element.querySelector('.wp_lucide_icons__dropdown__display__button')
                     const content = element.querySelector('.wp_lucide_icons__dropdown__content')
                     const search = element.querySelector('#wp_lucide_icons__search_form')
+                    const clear = element.querySelector('.wp_lucide_icons__dropdown__content__search__input__clear')
 
                     button.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === 'Space') toggle() })
                     search.addEventListener('click', (e) => { e.target.focus() })
+                    clear.addEventListener('click', () => { search.value = ''; filterIcons('') })
                     window.addEventListener('click', handleDropClicks)
                     window.addEventListener('keydown', handleKeydown)
 
-                    function close() { content.dataset.lucide_icons_open = 'false' }
-                    function open() { content.dataset.lucide_icons_open = 'true' }
+                    function close() { content.dataset.lucide_icons_open = 'false'; search.blur() }
+                    function open() { content.dataset.lucide_icons_open = 'true'; search.focus() }
                     function toggle() { content.dataset.lucide_icons_open === 'false' ? open() : close() }
 
                     function handleKeydown(e) { if (e.key === 'Escape' || e.key === 'Esc') close() }
@@ -46,7 +48,7 @@
                     }))
                     const fuse = new Fuse(iconData, {
                         keys: ['name', 'tags'],
-                        threshold: 0.3,
+                        threshold: 0.2,
                     })
 
                     function filterIcons(searchQuery) {
