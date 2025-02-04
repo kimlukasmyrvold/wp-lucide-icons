@@ -4,7 +4,7 @@
     "main": "index.js",
     "scripts": {
         "sass": "sass -w scss:css --style compressed",
-        "publish": "node zipFiles.js"
+        "publish": "node publish.js"
     },
     "repository": {
         "type": "git",
@@ -21,6 +21,7 @@
     "description": "",
     "dependencies": {
         "archiver": "^7.0.1",
+        "fs-extra": "^11.3.0",
         "sass": "^1.83.0"
     }
 }
