@@ -12,8 +12,8 @@
             if (this.readyState == 4) {
                 if (this.status == 200) {
                     element.innerHTML = this.responseText;
+                    createIconsFromList(element.querySelector('.wp_lucide_icons__dropdown__content__icons'));
                     lucide.createIcons()
-                    createIcons(element.querySelector('.wp_lucide_icons__dropdown__content__icons'));
                     element.querySelectorAll('svg rect').forEach(rect => { // add inline style tag to the recs so it doesn't get overiden by bad css from tinymce
                         rect.setAttribute('style', `width:${rect.getAttribute('width')}px; height:${rect.getAttribute('height')}px;`)
                     })
@@ -71,7 +71,7 @@
         return;
     }
 
-    function createIcons(iconsContainer) {
+    function createIconsFromList(iconsContainer) {
         const allIcons = Object.fromEntries(Object.entries(lucide.icons).sort((a, b) => {
             if (a[0] < b[0]) return -1
             if (a[0] > b[0]) return 1
@@ -88,8 +88,14 @@
             const name = document.createElement('span')
             name.textContent = clean_icon
 
+            const lucideIcon = document.createElement('i')
+            lucideIcon.setAttribute('data-lucide', clean_icon)
+            lucideIcon.setAttribute('width', '24')
+            lucideIcon.setAttribute('height', '24')
+
             box.addEventListener('click', () => { addDrinkToText(clean_icon, '24', 'currentColor', '2') })
-            box.append(name, lucide.createElement(allIcons[icon]))
+            box.append(name, lucideIcon)
+
             iconsContainer.append(box);
         }
     }
@@ -100,7 +106,7 @@
             editor.addButton('lucideicons', {
                 type: 'button',
                 text: '',
-                icon: false,
+                icon: true,
                 tooltip: 'Insert Lucide Icon',
                 onPostRender: function () {
                     const div = this.getEl();

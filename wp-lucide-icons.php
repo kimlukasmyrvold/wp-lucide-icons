@@ -2,7 +2,7 @@
 /*
 Plugin Name: Lucide Icons
 Description: Adds Lucide icons support to the Flatsome theme using shortcodes.
-Version: 1.0.1
+Version: 1.0.2
 Author: Kim Lukas Myrvold
 License: GPLv2 or later
 */
@@ -14,17 +14,8 @@ if (!defined('ABSPATH')) {
 // Enqueue Lucide library
 function lucide_icons_enqueue()
 {
-    wp_enqueue_script(
-        'lucideicons',
-        'https://unpkg.com/lucide@latest',
-        [],
-        null,
-        true
-    );
-    wp_add_inline_script(
-        'lucideicons',
-        'document.addEventListener("DOMContentLoaded", function() { lucide.createIcons(); });'
-    );
+    wp_enqueue_script('lucideicons', 'https://unpkg.com/lucide@latest', [], null, true);
+    wp_add_inline_script('lucideicons', 'document.addEventListener("DOMContentLoaded", function() { lucide.createIcons(); });');
 }
 add_action('wp_enqueue_scripts', 'lucide_icons_enqueue');
 
