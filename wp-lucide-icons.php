@@ -2,24 +2,50 @@
 /*
 Plugin Name: Lucide Icons
 Description: Adds Lucide icons support to the Flatsome theme using shortcodes.
-Version: 1.0.2
+Version: 1.0.3
 Author: Kim Lukas Myrvold
 License: GPLv2 or later
 */
 
-if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly
-}
+if (!defined('ABSPATH'))
+    exit;
 
-// Enqueue Lucide library
+
+$lucidePath = "https://unpkg.com/lucide@latest";
+
+
 function lucide_icons_enqueue()
 {
-    wp_enqueue_script('lucideicons', 'https://unpkg.com/lucide@latest', [], null, true);
+    global $lucidePath;
+    wp_enqueue_script('lucideicons', $lucidePath, [], null, true);
     wp_add_inline_script('lucideicons', 'document.addEventListener("DOMContentLoaded", function() { lucide.createIcons(); });');
+
+    $lucideicons_style__path = "css/main.css";
+    wp_enqueue_style('lucideicons_style', plugin_dir_url(__FILE__) . $lucideicons_style__path, [], date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . $lucideicons_style__path)));
 }
 add_action('wp_enqueue_scripts', 'lucide_icons_enqueue');
 
-// Shortcode to render Lucide icons
+function lucide_icons_enqueue_admin($hook)
+{
+    if ($hook === 'post.php' || $hook === 'post-new.php') {
+        global $lucidePath;
+        wp_enqueue_script('lucideicons', $lucidePath, [], null, true);
+
+        $fuse_script__path = "js/lib/fuse.min.js";
+        wp_enqueue_script('fuse_script', plugin_dir_url(__FILE__) . $fuse_script__path, [], date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . $fuse_script__path)), true);
+
+        $lucideicons_script__path = "js/lucide-icons.js";
+        wp_enqueue_script('lucideicons_admin_script', plugin_dir_url(__FILE__) . $lucideicons_script__path, ['jquery'], date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . $lucideicons_script__path)), true);
+        wp_localize_script('lucideicons_admin_script', 'wpLucideIcons', ['ajaxUrl' => plugins_url('html/', __FILE__)]);
+
+        $lucideicons_style__path = "css/main-admin.css";
+        wp_enqueue_style('lucideicons_admin_style', plugin_dir_url(__FILE__) . $lucideicons_style__path, [], date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . $lucideicons_style__path)));
+    }
+}
+add_action('admin_enqueue_scripts', 'lucide_icons_enqueue_admin');
+
+
+
 function lucide_icon_shortcode($atts)
 {
     $atts = shortcode_atts(
@@ -38,27 +64,9 @@ function lucide_icon_shortcode($atts)
     $color = esc_attr($atts['color']);
     $stroke_width = esc_attr($atts['width']);
 
-    return "<svg data-lucide='{$icon_name}' width='{$size}' height='{$size}' stroke='{$color}' fill='none' stroke-width='{$stroke_width}' stroke-linecap='round' stroke-linejoin='round'></svg>";
+    return "<i data-lucide='{$icon_name}' width='{$size}' height='{$size}' stroke='{$color}' stroke-width='{$stroke_width}'></i>";
 }
 add_shortcode('lucide_icon', 'lucide_icon_shortcode');
-
-
-function lucide_icons_enqueue_admin($hook)
-{
-    if ($hook === 'post.php' || $hook === 'post-new.php') {
-        wp_enqueue_script('lucideicons', 'https://unpkg.com/lucide@latest', [], null, true);
-        wp_enqueue_script('fuse', 'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js', [], null, true);
-
-
-        $lucideIconsJsTime = date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . 'js/lucide-icons.js'));
-        wp_enqueue_script('lucideicons_script', plugin_dir_url(__FILE__) . 'js/lucide-icons.js', ['jquery'], $lucideIconsJsTime, true);
-        wp_localize_script('lucideicons_script', 'wpLucideIcons', ['ajaxUrl' => plugins_url('html/', __FILE__)]);
-
-        $lucideIconsCssTime = date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . 'css/main.css'));
-        wp_enqueue_style('lucideicons_style', plugin_dir_url(__FILE__) . 'css/main.css', [], $lucideIconsCssTime);
-    }
-}
-add_action('admin_enqueue_scripts', 'lucide_icons_enqueue_admin');
 
 
 

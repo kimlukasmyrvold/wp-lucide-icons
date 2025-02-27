@@ -1,6 +1,6 @@
 (function () {
     function addDrinkToText(icon_name, size, color, stroke_width) {
-        editor.insertContent(`<span style="display:inline-block">[lucide_icon name="${icon_name}" size="${size}" color="${color}" width="${stroke_width}"]</span> `)
+        editor.insertContent(`<span style="display:inline-grid">[lucide_icon name="${icon_name}" size="${size}" color="${color}" width="${stroke_width}"]</span> `)
         document.querySelector('#wp_lucide_icons .wp_lucide_icons__dropdown__content').dataset.lucide_icons_open = 'false'
     }
 
@@ -94,6 +94,10 @@
             lucideIcon.setAttribute('height', '24')
 
             box.addEventListener('click', () => { addDrinkToText(clean_icon, '24', 'currentColor', '2') })
+            box.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                navigator.clipboard.writeText(clean_icon);
+            });
             box.append(name, lucideIcon)
 
             iconsContainer.append(box);
