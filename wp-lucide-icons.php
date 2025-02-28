@@ -2,7 +2,7 @@
 /*
 Plugin Name: Lucide Icons
 Description: Adds Lucide icons support to the Flatsome theme using shortcodes.
-Version: 1.0.3
+Version: 1.0.4
 Author: Kim Lukas Myrvold
 License: GPLv2 or later
 */

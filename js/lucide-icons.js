@@ -1,4 +1,6 @@
 (function () {
+    if (typeof lucide === 'undefined' || typeof wpLucideIcons === 'undefined') return;
+    
     function addDrinkToText(icon_name, size, color, stroke_width) {
         editor.insertContent(`<span style="display:inline-grid">[lucide_icon name="${icon_name}" size="${size}" color="${color}" width="${stroke_width}"]</span> `)
         document.querySelector('#wp_lucide_icons .wp_lucide_icons__dropdown__content').dataset.lucide_icons_open = 'false'
