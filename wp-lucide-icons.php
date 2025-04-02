@@ -2,7 +2,7 @@
 /*
 Plugin Name: Lucide Icons
 Description: Adds Lucide icons support to the Flatsome theme using shortcodes.
-Version: 1.1.0
+Version: 1.2.0
 Author: Kim Lukas Myrvold
 License: GPLv2 or later
 */
@@ -11,13 +11,13 @@ if (!defined('ABSPATH'))
     exit;
 
 
-$lucidePath = "https://unpkg.com/lucide@latest";
+$lucidePath = "js/lib/lucide.min.js";
 
 
 function lucide_icons_enqueue()
 {
     global $lucidePath;
-    wp_enqueue_script('lucideicons', $lucidePath, [], null, true);
+    wp_enqueue_script('lucideicons', plugin_dir_url(__FILE__) . $lucidePath, [], null, true);
     wp_add_inline_script('lucideicons', 'document.addEventListener("DOMContentLoaded", function() { lucide.createIcons(); });');
 
     $lucideicons_style__path = "css/main.css";
@@ -29,7 +29,7 @@ function lucide_icons_enqueue_admin($hook)
 {
     if ($hook === 'post.php' || $hook === 'post-new.php') {
         global $lucidePath;
-        wp_enqueue_script('lucideicons', $lucidePath, [], null, true);
+        wp_enqueue_script('lucideicons', plugin_dir_url(__FILE__) . $lucidePath, [], null, true);
 
         $fuse_script__path = "js/lib/fuse.min.js";
         wp_enqueue_script('fuse_script', plugin_dir_url(__FILE__) . $fuse_script__path, [], date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . $fuse_script__path)), true);
