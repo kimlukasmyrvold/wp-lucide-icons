@@ -2,7 +2,7 @@
 /*
 Plugin Name: Lucide Icons
 Description: Adds Lucide icons support to the Flatsome theme using shortcodes.
-Version: 1.3.0
+Version: 1.3.1
 Author: Kim Lukas Myrvold
 License: GPLv2 or later
 */
@@ -36,6 +36,9 @@ function lucide_icons_enqueue_admin($hook)
 
         $lucideicons_script__path = "js/lucide-icons.js";
         wp_enqueue_script('lucideicons_admin_script', plugin_dir_url(__FILE__) . $lucideicons_script__path, ['jquery'], date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . $lucideicons_script__path)), true);
+        wp_localize_script('lucideicons_admin_script', 'props', [
+            'page_url' => get_site_url(),
+        ]);
 
         $lucideicons_style__path = "css/main-admin.css";
         wp_enqueue_style('lucideicons_admin_style', plugin_dir_url(__FILE__) . $lucideicons_style__path, [], date("ymd-Gis", filemtime(plugin_dir_path(__FILE__) . $lucideicons_style__path)));

@@ -154,7 +154,7 @@ function lucideIcons__handleDropdown(html) {
 }
 
 function lucideIcons__createDropdown() {
-    fetch("/wp-content/plugins/wp-lucide-icons/html/dropdown.html")
+    fetch(`${props.page_url}/wp-content/plugins/wp-lucide-icons/html/dropdown.html`)
         .then(response => response.text())
         .then(html => {
             try {
