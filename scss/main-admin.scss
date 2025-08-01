@@ -199,3 +199,18 @@
         }
     }
 }
+
+
+button.wp_lucide_icons__button {
+
+    svg,
+    svg * {
+        width: 20px;
+        height: 20px;
+
+        rect {
+            width: 16px;
+            height: 16px;
+        }
+    }
+}
