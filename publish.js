@@ -29,13 +29,13 @@ fs.readFile(path.join(__dirname, 'wp-lucide-icons.php'), 'utf8', (err, data) => 
 
         archive.pipe(output);
 
-        const foldersToZip = ['css', 'js', 'html'];
+        const foldersToZip = ['vendor', 'src'];
         foldersToZip.forEach(folder => {
             archive.directory(folder + '/', folder);
         });
 
 
-        const filesToZip = ['wp-lucide-icons.php', 'README.md'];
+        const filesToZip = ['wp-lucide-icons.php', 'bootstrap.php', 'README.md'];
         filesToZip.forEach(file => {
             archive.file(file, { name: path.basename(file) });
         });

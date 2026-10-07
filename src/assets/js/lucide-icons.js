@@ -2,21 +2,13 @@
 if (typeof window === 'undefined' || typeof document === 'undefined') throw new Error('This script must be run in a browser environment.');
 
 (async () => {
-    async function lucideIcons__fetchHTML(file) {
-        try {
-            const res = await fetch(`${props.page_url}/wp-content/plugins/wp-lucide-icons/html/${file}`);
-            if (!res.ok) {
-                throw new Error(res.status, '| Could not fetch the HTML file');
-            }
-
-            const text = await res.text();
-            const parser = new DOMParser();
-            const html = parser.parseFromString(text, "text/html");
-
-            return html;
-        } catch (error) {
-            console.error(error.message);
+    function lucideIcons__renderDropdownTemplate() {
+        if (typeof wpLucideIcons === 'undefined' || !wpLucideIcons.html) {
+            console.error('Dropdown template is not available');
+            return '';
         }
+
+        return wpLucideIcons.html;
     }
 
 
@@ -200,10 +192,13 @@ if (typeof window === 'undefined' || typeof document === 'undefined') throw new 
         parent.append(...dropdown.body.childNodes);
     }
 
-    async function lucideIcons__createDropdown() {
-        const dropdownContent = await lucideIcons__fetchHTML('dropdown.html');
+    function lucideIcons__createDropdown() {
+        const html = lucideIcons__renderDropdownTemplate();
+        if (!html) {
+            return;
+        }
 
-        console.log(dropdownContent);
+        lucideIcons__handleDropdown(html);
     }
 
     async function lucideIcons__toggleDropdown(state = 'toggle') {
@@ -252,8 +247,6 @@ if (typeof window === 'undefined' || typeof document === 'undefined') throw new 
                 icon.append(path1, path2, circle, rect);
                 return icon;
             })();
-            
-            const dropdownContent = await lucideIcons__fetchHTML('dropdown.html');
 
             tinymce.create('tinymce.plugins.LucideIcons', {
                 init: function (editor) {
