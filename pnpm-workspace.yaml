@@ -1,2 +1,4 @@
 allowBuilds:
   '@parcel/watcher': true
+overrides:
+  brace-expansion: ">=2.0.2"
