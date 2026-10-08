@@ -1,0 +1,10 @@
+@use "lib";
+@use "lib/config";
+
+@layer custom {
+    .#{config.$prefix} {
+        &__settings {
+            margin: 1rem 20px 1rem 0;
+        }
+    }
+}

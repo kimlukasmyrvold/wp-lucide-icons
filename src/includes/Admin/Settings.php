@@ -1,9 +1,9 @@
 <?php
 
-namespace WpLucideIcons\Admin;
+namespace WPIcons\Admin;
 
-use WpLucideIcons\Icons\LucideIcon;
-use WpLucideIcons\Template\Template;
+use WPIcons\Icons\LucideIcon;
+use WPIcons\Template\Template;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -11,9 +11,9 @@ if (!defined('ABSPATH')) {
 
 class Settings
 {
-    public const OPTION = 'wp_lucide_icons_settings';
-    public const PAGE = 'wp-lucide-icons';
-    public const GROUP = 'wp_lucide_icons';
+    public const OPTION = 'wp_icons__settings';
+    public const PAGE = 'wp-icons';
+    public const GROUP = 'wp_icons';
 
     private Template $templates;
 
@@ -24,11 +24,11 @@ class Settings
 
     public function register(): void
     {
-        add_action('admin_menu', array($this, 'addPage'));
-        add_action('admin_init', array($this, 'registerSetting'));
+        add_action('admin_menu', [$this, 'addPage']);
+        add_action('admin_init', [$this, 'registerSetting']);
         add_filter(
-            'plugin_action_links_' . plugin_basename(WP_LUCIDE_ICONS_FILE),
-            array($this, 'pluginLinks')
+            'plugin_action_links_' . plugin_basename(WP_ICONS__FILE),
+            [$this, 'pluginLinks']
         );
     }
 
@@ -37,40 +37,40 @@ class Settings
      */
     public static function get(): array
     {
-        $defaults = array(
+        $defaults = [
             'source' => 'plugin',
             'cdn_version' => 'latest',
-        );
+        ];
 
-        $stored = get_option(self::OPTION, array());
-        if (!is_array($stored)) {
+        $stored = get_option(self::OPTION, []);
+        if (!\is_array($stored)) {
             return $defaults;
         }
 
-        return array_merge($defaults, $stored);
+        return [...$defaults, ...$stored];
     }
 
     public function addPage(): void
     {
         add_options_page(
-            __('Lucide Icons', 'wp-lucide-icons'),
-            __('Lucide Icons', 'wp-lucide-icons'),
+            __('WP Icons', 'wp-icons'),
+            __('WP Icons', 'wp-icons'),
             'manage_options',
             self::PAGE,
-            array($this, 'renderPage')
+            [$this, 'renderPage']
         );
     }
 
     public function registerSetting(): void
     {
-        register_setting(self::GROUP, self::OPTION, array(
+        register_setting(self::GROUP, self::OPTION, [
             'type' => 'array',
-            'sanitize_callback' => array($this, 'sanitize'),
-            'default' => array(
+            'sanitize_callback' => [$this, 'sanitize'],
+            'default' => [
                 'source' => 'plugin',
                 'cdn_version' => 'latest',
-            ),
-        ));
+            ],
+        ]);
     }
 
     /**
@@ -80,27 +80,27 @@ class Settings
     public function sanitize($input): array
     {
         $current = self::get();
-        $source = (is_array($input) && isset($input['source']) && $input['source'] === 'cdn')
+        $source = (\is_array($input) && isset($input['source']) && $input['source'] === 'cdn')
             ? 'cdn'
             : 'plugin';
 
-        $version = is_array($input) && isset($input['cdn_version'])
+        $version = \is_array($input) && isset($input['cdn_version'])
             ? trim((string) $input['cdn_version'])
             : $current['cdn_version'];
 
         if ($version !== 'latest' && !preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/', $version)) {
             add_settings_error(
                 self::OPTION,
-                'wp_lucide_icons_invalid_version',
-                __('CDN version must be “latest” or a valid Lucide semver (for example 0.468.0).', 'wp-lucide-icons')
+                'wp_icons_invalid_version',
+                __('CDN version must be “latest” or a valid Lucide semver (for example 0.468.0).', 'wpicons')
             );
             $version = $current['cdn_version'];
         }
 
-        return array(
+        return [
             'source' => $source,
             'cdn_version' => $version,
-        );
+        ];
     }
 
     /**
@@ -112,7 +112,7 @@ class Settings
         $url = admin_url('options-general.php?page=' . self::PAGE);
         array_unshift(
             $links,
-            '<a href="' . esc_url($url) . '">' . esc_html__('Settings', 'wp-lucide-icons') . '</a>'
+            '<a href="' . esc_url($url) . '">' . esc_html__('Settings', 'wpicons') . '</a>'
         );
 
         return $links;
@@ -126,14 +126,14 @@ class Settings
 
         $versions = $this->cdnVersions();
 
-        echo $this->templates->render('admin/settings', array(
+        echo $this->templates->render('admin/settings', [
             'settings' => self::get(),
             'option_name' => self::OPTION,
             'group' => self::GROUP,
             'bundled_version' => LucideIcon::BUNDLED_VERSION,
             'cdn_versions' => $versions,
-            'versions_fetch_failed' => $versions === array(),
-        ));
+            'versions_fetch_failed' => $versions === [],
+        ]);
     }
 
     /**
@@ -143,28 +143,28 @@ class Settings
      */
     private function cdnVersions(): array
     {
-        $cached = get_transient('wp_lucide_icons_npm_versions');
-        if (is_array($cached)) {
+        $cached = get_transient('wp_icons__npm_versions');
+        if (\is_array($cached)) {
             return $cached;
         }
 
-        $response = wp_remote_get('https://registry.npmjs.org/lucide', array(
+        $response = wp_remote_get('https://registry.npmjs.org/lucide', [
             'timeout' => 10,
-        ));
+        ]);
 
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
-            return array();
+            return [];
         }
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
-        if (!is_array($body) || !isset($body['versions']) || !is_array($body['versions'])) {
-            return array();
+        if (!\is_array($body) || !isset($body['versions']) || !\is_array($body['versions'])) {
+            return [];
         }
 
         $versions = array_values(array_filter(
             array_keys($body['versions']),
             static function ($version) {
-                return is_string($version) && preg_match('/^\d+\.\d+\.\d+$/', $version);
+                return \is_string($version) && preg_match('/^\d+\.\d+\.\d+$/', $version);
             }
         ));
 
@@ -172,8 +172,8 @@ class Settings
             return version_compare($b, $a);
         });
 
-        $versions = array_slice($versions, 0, 50);
-        set_transient('wp_lucide_icons_npm_versions', $versions, 12 * HOUR_IN_SECONDS);
+        $versions = \array_slice($versions, 0, 50);
+        set_transient('wp_icons__npm_versions', $versions, 12 * HOUR_IN_SECONDS);
 
         return $versions;
     }

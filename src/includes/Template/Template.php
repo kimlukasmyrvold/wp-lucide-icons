@@ -1,8 +1,8 @@
 <?php
 
-namespace WpLucideIcons\Template;
+namespace WPIcons\Template;
 
-if (!defined('ABSPATH')) {
+if (!\defined('ABSPATH')) {
     exit;
 }
 
@@ -12,15 +12,15 @@ class Template
 
     public function __construct()
     {
-        $this->directory = WP_LUCIDE_ICONS_PATH . 'src/templates';
+        $this->directory = WP_ICONS__PATH . 'src/templates';
     }
 
     /**
      * @param array<string, mixed> $data
      */
-    public function render(string $name, array $data = array()): string
+    public function render(string $name, array $data = []): string
     {
-        $path = $this->directory . '/' . $name . '.php';
+        $path = "{$this->directory}/{$name}.php";
 
         if (!is_readable($path)) {
             return '';

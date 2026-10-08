@@ -3,12 +3,12 @@ if (typeof window === 'undefined' || typeof document === 'undefined') throw new 
 
 (async () => {
     function lucideIcons__renderDropdownTemplate() {
-        if (typeof wpLucideIcons === 'undefined' || !wpLucideIcons.html) {
+        if (typeof WPIcons === 'undefined' || !WPIcons.html) {
             console.error('Dropdown template is not available');
             return '';
         }
 
-        return wpLucideIcons.html;
+        return WPIcons.html;
     }
 
 

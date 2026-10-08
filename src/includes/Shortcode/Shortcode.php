@@ -1,8 +1,8 @@
 <?php
 
-namespace WpLucideIcons\Shortcode;
+namespace WPIcons\Shortcode;
 
-if (!defined('ABSPATH')) {
+if (!\defined('ABSPATH')) {
     exit;
 }
 
@@ -10,21 +10,21 @@ class Shortcode
 {
     public function register(): void
     {
-        add_shortcode('lucide_icon', array($this, 'render'));
+        add_shortcode('lucide_icon', [$this, 'render']);
     }
 
     /**
      * @param array|string $atts
      */
-    public function render($atts): string
+    public function render(array $atts): string
     {
         $atts = shortcode_atts(
-            array(
+            [
                 'name' => 'circle',
                 'size' => '24',
                 'color' => '#000000',
                 'width' => '2',
-            ),
+            ],
             $atts,
             'lucide_icon'
         );

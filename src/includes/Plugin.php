@@ -1,14 +1,14 @@
 <?php
 
-namespace WpLucideIcons;
+namespace WPIcons;
 
-use WpLucideIcons\Admin\Assets;
-use WpLucideIcons\Admin\Settings;
-use WpLucideIcons\Admin\TinyMce;
-use WpLucideIcons\Shortcode\Shortcode;
-use WpLucideIcons\Template\Template;
+use WPIcons\Admin\Assets;
+use WPIcons\Admin\Settings;
+use WPIcons\Admin\TinyMce;
+use WPIcons\Shortcode\Shortcode;
+use WPIcons\Template\Template;
 
-if (!defined('ABSPATH')) {
+if (!\defined('ABSPATH')) {
     exit;
 }
 
@@ -35,9 +35,9 @@ class Plugin
     public function init(): void
     {
         load_plugin_textdomain(
-            'wp-lucide-icons',
+            'wpicons',
             false,
-            dirname(plugin_basename(WP_LUCIDE_ICONS_FILE)) . '/languages'
+            dirname(plugin_basename(WP_ICONS__FILE)) . '/languages'
         );
 
         (new Assets($this->templates))->register();

@@ -1,24 +1,24 @@
 <?php
 
-namespace WpLucideIcons;
+namespace WPIcons;
 
-if (!defined('ABSPATH')) {
+if (!\defined('ABSPATH')) {
     exit;
 }
 
 class Bootstrap
 {
-    public function wp_lucide_icons_missing_vendor_notice()
+    public function wp_icons_missing_vendor_notice()
     {
-        echo '<div class="notice notice-error"><p>' . esc_html__('Lucide Icons is missing Composer dependencies. Run composer install in the plugin directory.', 'wp-lucide-icons') . '</p></div>';
+        echo '<div class="notice notice-error"><p>' . esc_html__('WP Icons is missing Composer dependencies. Run composer install in the plugin directory.', 'wpicons') . '</p></div>';
     }
 
     public static function init()
     {
-        $autoload = WP_LUCIDE_ICONS_PATH . 'vendor/autoload.php';
+        $autoload = WP_ICONS__PATH . 'vendor/autoload.php';
 
         if (!is_readable($autoload)) {
-            add_action('admin_notices', array(new self(), 'wp_lucide_icons_missing_vendor_notice'));
+            add_action('admin_notices', [new self(), 'wp_icons_missing_vendor_notice']);
             return;
         }
 

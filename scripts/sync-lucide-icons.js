@@ -151,7 +151,7 @@ function generatePhp(version, icons) {
 
     return `<?php
 
-namespace WpLucideIcons\\Icons;
+namespace WPIcons\\Icons;
 
 if (!\\defined('ABSPATH')) {
     exit;
