@@ -8,6 +8,11 @@ Dates use the [ISO 8601 date format](https://www.iso.org/iso-8601-date-and-time-
 
 ## [Unreleased]
 
+### Added
+
+- Inline icons in Gutenberg RichText (paragraph, heading, and other text toolbars)
+- TinyMCE **Insert icon** button with the same picker and live preview
+
 ## [2.0.0] - 2026-10-09
 
 ### Added

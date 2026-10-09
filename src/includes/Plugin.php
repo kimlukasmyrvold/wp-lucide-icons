@@ -6,7 +6,9 @@ use WPIcons\Admin\Assets;
 use WPIcons\Admin\LibraryPage;
 use WPIcons\Admin\Menu;
 use WPIcons\Admin\Settings;
+use WPIcons\Admin\TinyMce;
 use WPIcons\Blocks\IconBlock;
+use WPIcons\Content\InlineIcons;
 use WPIcons\Icons\Cdn\CdnCatalog;
 use WPIcons\Rest\IconsController;
 use WPIcons\Shortcode\Shortcode;
@@ -53,6 +55,8 @@ class Plugin
         (new Shortcode())->register();
         (new IconsController())->register();
         (new IconBlock())->register();
+        (new InlineIcons())->register();
+        (new TinyMce())->register();
         (new CdnCatalog())->register();
     }
 

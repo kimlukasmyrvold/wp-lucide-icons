@@ -10,6 +10,8 @@ if (!\defined('ABSPATH')) {
 
 class Assets
 {
+    private bool $pickerEnqueued = false;
+
     public function __construct(protected Template $templates)
     {
         $this->templates = $templates;
@@ -18,8 +20,10 @@ class Assets
     public function register(): void
     {
         add_action('wp_enqueue_scripts', [$this, 'enqueueFront']);
+        add_action('enqueue_block_assets', [$this, 'enqueueFront']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueAdmin']);
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditor']);
+        add_action('wp_enqueue_editor', [$this, 'enqueueTinyMcePicker']);
     }
 
     public function enqueueFront(): void
@@ -31,6 +35,10 @@ class Assets
     {
         if ($this->shouldEnqueueAdminStyle($hook)) {
             $this->enqueueWpiconsStyle('wpicons_admin_style');
+        }
+
+        if (in_array($hook, ['post.php', 'post-new.php'], true)) {
+            $this->enqueueTinyMcePicker();
         }
 
         if ($hook !== 'toplevel_page_' . Menu::SLUG) {
@@ -76,6 +84,46 @@ class Assets
         wp_enqueue_script('wpicons-admin-config');
         wp_add_inline_script('wpicons-admin-config', $config, 'after');
         wp_add_inline_script('wpicons-icon-editor-script', $config, 'before');
+
+        $this->enqueueTinyMcePicker();
+    }
+
+    public function enqueueTinyMcePicker(): void
+    {
+        if ($this->pickerEnqueued) {
+            return;
+        }
+
+        $script = WP_ICONS__PATH . 'build/tinymce/picker.js';
+        $asset = WP_ICONS__PATH . 'build/tinymce/picker.asset.php';
+        if (!is_readable($script)) {
+            return;
+        }
+
+        $this->pickerEnqueued = true;
+
+        $this->enqueueWpiconsStyle('wpicons_tinymce_picker_style');
+        wp_enqueue_style('wp-components');
+
+        $deps = ['wp-element', 'wp-api-fetch', 'wp-components', 'wp-i18n'];
+        $version = WP_ICONS__VERSION;
+        if (is_readable($asset)) {
+            $meta = require $asset;
+            if (\is_array($meta)) {
+                $deps = $meta['dependencies'] ?? $deps;
+                $version = $meta['version'] ?? $version;
+            }
+        }
+
+        wp_enqueue_script(
+            'wpicons-tinymce-picker',
+            WP_ICONS__URL . 'build/tinymce/picker.js',
+            $deps,
+            $version,
+            true
+        );
+
+        wp_localize_script('wpicons-tinymce-picker', 'WPIconsAdmin', $this->editorConfig());
     }
 
     /**

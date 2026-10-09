@@ -8,6 +8,12 @@ A WordPress plugin for placing icons from Lucide Icons and Material Symbols (Out
 
 Insert the **Icon** block. Choose a library, pick an icon, then set size, color, and (for Lucide) stroke width.
 
+To place an icon inside a paragraph, heading, or other text, use the **Insert icon** control on the block toolbar. Inline icons follow the surrounding text size and color.
+
+### Classic editor (TinyMCE)
+
+Use the star **Insert icon** button on the TinyMCE toolbar. The same control appears in the Classic block and other TinyMCE fields.
+
 ### Shortcode
 
 ```
