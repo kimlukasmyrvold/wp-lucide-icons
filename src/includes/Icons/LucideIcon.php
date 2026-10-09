@@ -2149,19 +2149,19 @@ enum LucideIcon: string
         string|bool $hiddenOrTitle = true,
         int $widthOrSize = 24,
         ?int $height = null,
+        string $color = 'currentColor',
+        float|int|string $strokeWidth = 2,
     ): string {
-        $height ??= $widthOrSize;
-        $hidden_attr = Common::hidden($hiddenOrTitle);
-        $title_element = Common::title($hiddenOrTitle);
-        $name = $this->value;
-        $inner = $this->inner();
+        $options = new IconOptions(
+            name: $this->value,
+            size: $widthOrSize,
+            height: $height,
+            color: $color,
+            strokeWidth: is_numeric($strokeWidth) ? (float) $strokeWidth : 2.0,
+            hiddenOrTitle: $hiddenOrTitle,
+        );
 
-        return <<<SVG
-        <svg {$hidden_attr} xmlns="http://www.w3.org/2000/svg" width="{$widthOrSize}" height="{$height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-{$name}-icon lucide-{$name}">
-            {$title_element}
-            {$inner}
-        </svg>
-        SVG;
+        return Svg::lucide($this->inner(), $options);
     }
 
     public static function fromName(string $name): ?self
@@ -2174,19 +2174,21 @@ enum LucideIcon: string
         string|bool $hiddenOrTitle = true,
         int $widthOrSize = 24,
         ?int $height = null,
+        string $color = 'currentColor',
+        float|int|string $strokeWidth = 2,
     ): string {
         if ($icon instanceof self) {
-            return $icon->render($hiddenOrTitle, $widthOrSize, $height);
+            return $icon->render($hiddenOrTitle, $widthOrSize, $height, $color, $strokeWidth);
         }
 
         if (!\is_string($icon) || $icon === '') {
             return '';
         }
 
-        return self::fromName($icon)?->render($hiddenOrTitle, $widthOrSize, $height) ?? '';
+        return self::fromName($icon)?->render($hiddenOrTitle, $widthOrSize, $height, $color, $strokeWidth) ?? '';
     }
 
-    private function inner(): string
+    public function inner(): string
     {
         return match ($this) {
             self::AArrowDown => '<!-- @license lucide-static v1.52.0 - ISC --> <path d="m14 12 4 4 4-4" /> <path d="M18 16V7" /> <path d="m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16" /> <path d="M3.304 13h6.392" />',

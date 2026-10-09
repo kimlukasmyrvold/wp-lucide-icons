@@ -9,7 +9,6 @@ const tar = require('tar');
 
 const ROOT = path.resolve(__dirname, '..');
 const ENUM_PATH = path.join(ROOT, 'src', 'includes', 'Icons', 'LucideIcon.php');
-const LUCIDE_JS_PATH = path.join(ROOT, 'src', 'assets', 'js', 'lib', 'lucide.min.js');
 
 const PHP_RESERVED = new Set([
     '__halt_compiler', 'abstract', 'and', 'array', 'as', 'break', 'callable', 'case',
@@ -122,24 +121,6 @@ async function collectIcons(extractDir) {
     return icons;
 }
 
-async function copyLucideJs(extractDir) {
-    const candidates = [
-        path.join(extractDir, 'package', 'dist', 'umd', 'lucide.min.js'),
-        path.join(extractDir, 'package', 'dist', 'lucide.min.js'),
-    ];
-
-    for (const candidate of candidates) {
-        try {
-            await fs.copyFile(candidate, LUCIDE_JS_PATH);
-            return candidate;
-        } catch {
-            // try next
-        }
-    }
-
-    throw new Error('Could not find dist/umd/lucide.min.js in the lucide package');
-}
-
 function generatePhp(version, icons) {
     const cases = icons
         .map((icon) => `    case ${icon.caseName} = ${phpSingleQuoted(icon.kebab)};`)
@@ -171,19 +152,19 @@ ${cases}
         string|bool $hiddenOrTitle = true,
         int $widthOrSize = 24,
         ?int $height = null,
+        string $color = 'currentColor',
+        float|int|string $strokeWidth = 2,
     ): string {
-        $height ??= $widthOrSize;
-        $hidden_attr = Common::hidden($hiddenOrTitle);
-        $title_element = Common::title($hiddenOrTitle);
-        $name = $this->value;
-        $inner = $this->inner();
+        $options = new IconOptions(
+            name: $this->value,
+            size: $widthOrSize,
+            height: $height,
+            color: $color,
+            strokeWidth: is_numeric($strokeWidth) ? (float) $strokeWidth : 2.0,
+            hiddenOrTitle: $hiddenOrTitle,
+        );
 
-        return <<<SVG
-        <svg {$hidden_attr} xmlns="http://www.w3.org/2000/svg" width="{$widthOrSize}" height="{$height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-{$name}-icon lucide-{$name}">
-            {$title_element}
-            {$inner}
-        </svg>
-        SVG;
+        return Svg::lucide($this->inner(), $options);
     }
 
     public static function fromName(string $name): ?self
@@ -196,19 +177,21 @@ ${cases}
         string|bool $hiddenOrTitle = true,
         int $widthOrSize = 24,
         ?int $height = null,
+        string $color = 'currentColor',
+        float|int|string $strokeWidth = 2,
     ): string {
         if ($icon instanceof self) {
-            return $icon->render($hiddenOrTitle, $widthOrSize, $height);
+            return $icon->render($hiddenOrTitle, $widthOrSize, $height, $color, $strokeWidth);
         }
 
         if (!\\is_string($icon) || $icon === '') {
             return '';
         }
 
-        return self::fromName($icon)?->render($hiddenOrTitle, $widthOrSize, $height) ?? '';
+        return self::fromName($icon)?->render($hiddenOrTitle, $widthOrSize, $height, $color, $strokeWidth) ?? '';
     }
 
-    private function inner(): string
+    public function inner(): string
     {
         return match ($this) {
 ${arms}
@@ -228,35 +211,21 @@ async function main() {
         throw new Error('lucide-static metadata is missing version or tarball');
     }
 
-    const lucideMeta = await registryPackage('lucide', version);
-    if (!lucideMeta.dist || !lucideMeta.dist.tarball) {
-        throw new Error(`lucide@${version} metadata is missing tarball`);
-    }
-
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'wp-lucide-icons-'));
     const staticDir = path.join(tmp, 'lucide-static');
-    const lucideDir = path.join(tmp, 'lucide');
 
     try {
         console.log(`Downloading lucide-static@${version}…`);
         await extractTarball(meta.dist.tarball, staticDir, (p) => p.replace(/\\/g, '/').includes('/icons/') && p.endsWith('.svg'));
-
-        console.log(`Downloading lucide@${version}…`);
-        await extractTarball(lucideMeta.dist.tarball, lucideDir, (p) => {
-            const normalized = p.replace(/\\/g, '/');
-            return normalized.endsWith('/dist/umd/lucide.min.js') || normalized.endsWith('/dist/lucide.min.js');
-        });
 
         const icons = await collectIcons(staticDir);
         if (icons.length < 1) {
             throw new Error('No SVG icons found in lucide-static');
         }
 
-        const jsSource = await copyLucideJs(lucideDir);
         await fs.writeFile(ENUM_PATH, generatePhp(version, icons), 'utf8');
 
         console.log(`Wrote ${icons.length} icons to ${path.relative(ROOT, ENUM_PATH)}`);
-        console.log(`Copied ${path.relative(lucideDir, jsSource)} → ${path.relative(ROOT, LUCIDE_JS_PATH)}`);
         console.log(`Bundled Lucide version: ${version}`);
     } finally {
         await fs.rm(tmp, { recursive: true, force: true });

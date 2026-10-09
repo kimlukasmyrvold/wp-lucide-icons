@@ -19,138 +19,103 @@ class Assets
     {
         add_action('wp_enqueue_scripts', [$this, 'enqueueFront']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueAdmin']);
+        add_action('enqueue_block_editor_assets', [$this, 'enqueueEditor']);
     }
 
     public function enqueueFront(): void
     {
-        $lucide = $this->lucideScript();
-
-        wp_enqueue_script(
-            'wpicons',
-            $lucide['url'],
-            [],
-            $lucide['ver'],
-            true
-        );
-        wp_add_inline_script('wpicons', 'document.addEventListener("DOMContentLoaded", function() { lucide.createIcons(); });');
+        $this->enqueueWpiconsStyle('wpicons');
     }
 
     public function enqueueAdmin(string $hook): void
     {
         if ($this->shouldEnqueueAdminStyle($hook)) {
-            $adminStyle = 'css/wpicons.css';
-            wp_enqueue_style(
-                'wpicons_admin_style',
-                $this->assetUrl($adminStyle),
-                [],
-                $this->assetVersion($adminStyle)
-            );
+            $this->enqueueWpiconsStyle('wpicons_admin_style');
         }
 
-        if (!$this->isEditorScreen($hook)) {
+        if ($hook !== 'toplevel_page_' . Menu::SLUG) {
             return;
         }
 
-        $lucide = $this->lucideScript();
-        $fuse = 'js/lib/fuse.min.js';
-        $adminScript = 'js/lucide-icons.js';
+        wp_enqueue_style('wp-components');
+
+        $script = WP_ICONS__PATH . 'build/admin/library/index.js';
+        $asset = WP_ICONS__PATH . 'build/admin/library/index.asset.php';
+        $deps = ['wp-element', 'wp-api-fetch', 'wp-components', 'wp-i18n'];
+        $version = WP_ICONS__VERSION;
+
+        if (is_readable($asset)) {
+            $meta = require $asset;
+            if (\is_array($meta)) {
+                $deps = $meta['dependencies'] ?? $deps;
+                $version = $meta['version'] ?? $version;
+            }
+        }
+
+        if (!is_readable($script)) {
+            return;
+        }
 
         wp_enqueue_script(
-            'wpicons',
-            $lucide['url'],
+            'wpicons-admin-library',
+            WP_ICONS__URL . 'build/admin/library/index.js',
+            $deps,
+            $version,
+            true
+        );
+
+        wp_localize_script('wpicons-admin-library', 'WPIconsAdmin', $this->editorConfig());
+    }
+
+    public function enqueueEditor(): void
+    {
+        $this->enqueueWpiconsStyle('wpicons_editor_style');
+
+        $config = 'window.WPIconsAdmin = window.WPIconsAdmin || ' . wp_json_encode($this->editorConfig()) . ';';
+        wp_register_script('wpicons-admin-config', false, [], WP_ICONS__VERSION, true);
+        wp_enqueue_script('wpicons-admin-config');
+        wp_add_inline_script('wpicons-admin-config', $config, 'after');
+        wp_add_inline_script('wpicons-icon-editor-script', $config, 'before');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function editorConfig(): array
+    {
+        $settings = Settings::get();
+
+        return [
+            'restUrl' => rest_url('wpicons/v1/'),
+            'nonce' => wp_create_nonce('wp_rest'),
+            'defaults' => [
+                'library' => $settings['default_library'],
+                'size' => $settings['default_size'],
+                'color' => $settings['default_color'],
+                'stroke' => $settings['default_stroke'],
+            ],
+        ];
+    }
+
+    private function enqueueWpiconsStyle(string $handle): void
+    {
+        $relative = 'css/wpicons.css';
+        wp_enqueue_style(
+            $handle,
+            $this->assetUrl($relative),
             [],
-            $lucide['ver'],
-            true
+            $this->assetVersion($relative)
         );
-
-        wp_enqueue_script(
-            'fuse_script',
-            $this->assetUrl($fuse),
-            [],
-            $this->assetVersion($fuse),
-            true
-        );
-
-        wp_enqueue_script(
-            'wpicons_admin_script',
-            $this->assetUrl($adminScript),
-            ['jquery', 'wpicons', 'fuse_script'],
-            $this->assetVersion($adminScript),
-            true
-        );
-
-        wp_localize_script('wpicons_admin_script', 'WPIcons', [
-            'pluginUrl' => WP_ICONS__URL,
-            'html' => $this->templates->render('dropdown', $this->dropdownContext()),
-        ]);
     }
 
     private function isPluginSettingsPage(string $hook): bool
     {
-        return $hook === 'settings_page_' . Settings::PAGE;
-    }
-
-    private function isEditorScreen(string $hook): bool
-    {
-        $hooks = [
-            'post.php',
-            'post-new.php',
-            'site-editor.php',
-            'widgets.php',
-            'customize.php',
-            'comment.php',
-        ];
-
-        return in_array($hook, $hooks, true) || str_contains($hook, 'uxbuilder');
+        return $hook === 'wp-icons_page_' . Settings::PAGE;
     }
 
     private function shouldEnqueueAdminStyle(string $hook): bool
     {
-        return $this->isPluginSettingsPage($hook) || $this->isEditorScreen($hook);
-    }
-
-    public function dropdownContext(): array
-    {
-        return [
-            'title_wp' => 'WP',
-            'title_accent' => 'Lucide',
-            'title_icons' => 'Icons',
-            'search_label' => __('Search all lucide.dev icons', 'wpicons'),
-            'search_placeholder' => __('Search icons', 'wpicons'),
-            'options_label' => __('Options', 'wpicons'),
-            'stroke_width_label' => __('Stroke width', 'wpicons'),
-            'stroke_width_value' => '2px',
-            'size_label' => __('Size', 'wpicons'),
-            'size_value' => '24px',
-            'add_icon_label' => __('Add Lucide Icon', 'wpicons'),
-        ];
-    }
-
-    /**
-     * @return array{url: string, ver: string|false|null}
-     */
-    private function lucideScript(): array
-    {
-        $settings = Settings::get();
-        $relative = 'js/lib/lucide.min.js';
-        $bundled = [
-            'url' => $this->assetUrl($relative),
-            'ver' => $this->assetVersion($relative),
-        ];
-
-        if ($settings['source'] !== 'cdn') {
-            return $bundled;
-        }
-
-        $version = $settings['cdn_version'];
-        if ($version !== 'latest' && !preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/', $version)) {
-            return $bundled;
-        }
-
-        return [
-            'url' => 'https://cdn.jsdelivr.net/npm/lucide@' . rawurlencode($version) . '/dist/umd/lucide.min.js',
-            'ver' => $version === 'latest' ? null : $version,
-        ];
+        return $this->isPluginSettingsPage($hook) || $hook === 'toplevel_page_' . Menu::SLUG;
     }
 
     private function assetUrl(string $relative): string

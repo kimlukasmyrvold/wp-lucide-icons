@@ -1,0 +1,129 @@
+@use "lib/config";
+@use "lib/themes";
+
+.#{config.$prefix} {
+    &__picker {
+        display: flex;
+        flex-direction: column;
+        gap: calc(#{themes.base(spacing)} * 3);
+
+        &__toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: calc(#{themes.base(spacing)} * 3);
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        &__tabs {
+            display: flex;
+            gap: calc(#{themes.base(spacing)} * 2);
+            flex-wrap: wrap;
+        }
+
+        &__tab {
+            display: inline-flex;
+            align-items: center;
+            gap: calc(#{themes.base(spacing)} * 1.5);
+            border: 1px solid themes.getCSSVar(border);
+            background: themes.getCSSVar(card);
+            color: themes.getCSSVar(card-foreground);
+            border-radius: themes.base(radius-sm);
+            padding: calc(#{themes.base(spacing)} * 1.5) calc(#{themes.base(spacing)} * 2.5);
+            cursor: pointer;
+
+            &.is-active {
+                border-color: themes.getCSSVar(primary);
+                color: themes.getCSSVar(primary);
+                box-shadow: 0 0 0 1px themes.getCSSVar(ring);
+            }
+        }
+
+        &__count {
+            opacity: 0.7;
+            font-size: themes.base(text-xs);
+        }
+
+        &__search input {
+            min-width: 13.75rem;
+            border: 1px solid themes.getCSSVar(border);
+            background: themes.getCSSVar(input);
+            color: themes.getCSSVar(foreground);
+            border-radius: themes.base(radius-sm);
+            padding: calc(#{themes.base(spacing)} * 1.5) calc(#{themes.base(spacing)} * 2);
+        }
+
+        &__meta {
+            margin: 0;
+            color: themes.getCSSVar(muted-foreground);
+            font-size: themes.base(text-sm);
+        }
+
+        &__grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+            gap: calc(#{themes.base(spacing)} * 2);
+            max-height: min(70vh, 40rem);
+            overflow: auto;
+        }
+
+        &__item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: calc(#{themes.base(spacing)} * 1.5);
+            padding: calc(#{themes.base(spacing)} * 2.5) calc(#{themes.base(spacing)} * 1.5);
+            border: 1px solid themes.getCSSVar(border);
+            border-radius: themes.base(radius-md);
+            background: themes.getCSSVar(card);
+            color: themes.getCSSVar(card-foreground);
+            cursor: pointer;
+
+            &.is-selected,
+            &:hover {
+                border-color: themes.getCSSVar(primary);
+            }
+        }
+
+        &__glyph {
+            display: flex;
+            width: 1.75rem;
+            height: 1.75rem;
+            align-items: center;
+            justify-content: center;
+            color: themes.getCSSVar(foreground);
+
+            svg {
+                width: 1.5rem;
+                height: 1.5rem;
+            }
+        }
+
+        &__name {
+            font-size: themes.base(text-xs);
+            line-height: themes.base(leading-tight);
+            text-align: center;
+            word-break: break-word;
+        }
+
+        &__pager {
+            display: flex;
+            gap: calc(#{themes.base(spacing)} * 3);
+            align-items: center;
+            justify-content: center;
+        }
+
+        &__error,
+        &__empty {
+            margin: 0;
+            grid-column: 1 / -1;
+            color: themes.getCSSVar(muted-foreground);
+        }
+
+        &-modal {
+            .components-modal__content {
+                width: min(57.5rem, 100vw);
+            }
+        }
+    }
+}

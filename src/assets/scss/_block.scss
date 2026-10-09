@@ -1,0 +1,19 @@
+@use "lib/config";
+
+.wp-block-wpicons-icon__wrap {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    line-height: 0;
+
+    svg {
+        display: block;
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+.#{config.$prefix} {
+    // display: inline-block;
+    // vertical-align: middle;
+}

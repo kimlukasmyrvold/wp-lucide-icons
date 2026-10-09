@@ -1,0 +1,14 @@
+@use "lib/config";
+@use "lib/themes";
+
+.#{config.$prefix} {
+    &__settings {
+        margin: 1rem 20px 1rem 0;
+
+        &__library {
+            margin: calc(#{themes.base(spacing)} * 6) 0;
+            padding: calc(#{themes.base(spacing)} * 2) 0 calc(#{themes.base(spacing)} * 4);
+            border-top: 1px solid themes.getCSSVar(border);
+        }
+    }
+}

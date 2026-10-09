@@ -5,7 +5,7 @@
  * Plugin URI:          https://wp-icons.com/
  * Description:         Adds icon elements to place on pages, uses icons from Lucide Icons, Material Icons and other various icon libraries. Integrates with some WordPress themes like Flatsome.
  * Version:             2.0.0
- * Requires at least:   5.5
+ * Requires at least:   6.6
  * Requires PHP:        8.1
  * Author:              Kim Lukas Myrvold
  * Author URI:          https://www.kimlukas.dev/?utm_source=wordpress&utm_medium=wp-icons&utm_campaign=author_uri
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 
 define('WP_ICONS__VERSION', '2.0.0');
 define('WP_ICONS__MIN_PHP', '8.1');
-define('WP_ICONS__MIN_WP', '5.5');
+define('WP_ICONS__MIN_WP', '6.6');
 define('WP_ICONS__FILE', __FILE__);
 define('WP_ICONS__PATH', plugin_dir_path(__FILE__));
 define('WP_ICONS__URL', plugin_dir_url(__FILE__));

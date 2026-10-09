@@ -2,7 +2,8 @@
 
 namespace WPIcons\Admin;
 
-use WPIcons\Icons\LucideIcon;
+use WPIcons\Icons\Cdn\CdnCatalog;
+use WPIcons\Icons\Registry;
 use WPIcons\Template\Template;
 
 if (!defined('ABSPATH')) {
@@ -12,7 +13,7 @@ if (!defined('ABSPATH')) {
 class Settings
 {
     public const OPTION = 'wp_icons__settings';
-    public const PAGE = 'wp-icons';
+    public const PAGE = 'wp-icons-settings';
     public const GROUP = 'wp_icons';
 
     private Template $templates;
@@ -24,8 +25,8 @@ class Settings
 
     public function register(): void
     {
-        add_action('admin_menu', [$this, 'addPage']);
         add_action('admin_init', [$this, 'registerSetting']);
+        add_action('update_option_' . self::OPTION, [$this, 'onUpdated'], 10, 2);
         add_filter(
             'plugin_action_links_' . plugin_basename(WP_ICONS__FILE),
             [$this, 'pluginLinks']
@@ -33,32 +34,82 @@ class Settings
     }
 
     /**
-     * @return array{source: string, cdn_version: string}
+     * @return array{
+     *   default_library: string,
+     *   default_size: int,
+     *   default_color: string,
+     *   default_stroke: float,
+     *   libraries: array<string, array{enabled: bool, source: string, cdn_version: string}>
+     * }
      */
     public static function get(): array
     {
-        $defaults = [
-            'source' => 'plugin',
-            'cdn_version' => 'latest',
-        ];
-
+        $defaults = self::defaults();
         $stored = get_option(self::OPTION, []);
         if (!\is_array($stored)) {
             return $defaults;
         }
 
-        return [...$defaults, ...$stored];
+        $stored = self::migrate($stored);
+        $libraries = $defaults['libraries'];
+        if (isset($stored['libraries']) && \is_array($stored['libraries'])) {
+            foreach ($libraries as $id => $libraryDefaults) {
+                if (!isset($stored['libraries'][$id]) || !\is_array($stored['libraries'][$id])) {
+                    continue;
+                }
+                $libraries[$id] = [
+                    ...$libraryDefaults,
+                    ...$stored['libraries'][$id],
+                    'enabled' => !empty($stored['libraries'][$id]['enabled']),
+                    'source' => ($stored['libraries'][$id]['source'] ?? '') === 'cdn' ? 'cdn' : 'plugin',
+                ];
+            }
+        }
+
+        $defaultLibrary = isset($stored['default_library']) ? (string) $stored['default_library'] : $defaults['default_library'];
+        if (!isset($libraries[$defaultLibrary])) {
+            $defaultLibrary = $defaults['default_library'];
+        }
+
+        return [
+            'default_library' => $defaultLibrary,
+            'default_size' => isset($stored['default_size']) ? max(1, (int) $stored['default_size']) : $defaults['default_size'],
+            'default_color' => isset($stored['default_color']) && \is_string($stored['default_color']) && $stored['default_color'] !== ''
+                ? $stored['default_color']
+                : $defaults['default_color'],
+            'default_stroke' => isset($stored['default_stroke']) && is_numeric($stored['default_stroke'])
+                ? (float) $stored['default_stroke']
+                : $defaults['default_stroke'],
+            'libraries' => $libraries,
+        ];
     }
 
-    public function addPage(): void
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public static function libraryEnabled(array $settings, string $libraryId): bool
     {
-        add_options_page(
-            __('WP Icons', 'wp-icons'),
-            __('WP Icons', 'wp-icons'),
-            'manage_options',
-            self::PAGE,
-            [$this, 'renderPage']
-        );
+        return !empty($settings['libraries'][$libraryId]['enabled']);
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public static function librarySource(array $settings, string $libraryId): string
+    {
+        $source = $settings['libraries'][$libraryId]['source'] ?? 'plugin';
+
+        return $source === 'cdn' ? 'cdn' : 'plugin';
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public static function libraryCdnVersion(array $settings, string $libraryId): string
+    {
+        $version = $settings['libraries'][$libraryId]['cdn_version'] ?? 'latest';
+
+        return \is_string($version) && $version !== '' ? $version : 'latest';
     }
 
     public function registerSetting(): void
@@ -66,41 +117,104 @@ class Settings
         register_setting(self::GROUP, self::OPTION, [
             'type' => 'array',
             'sanitize_callback' => [$this, 'sanitize'],
-            'default' => [
-                'source' => 'plugin',
-                'cdn_version' => 'latest',
-            ],
+            'default' => self::defaults(),
         ]);
     }
 
     /**
      * @param mixed $input
-     * @return array{source: string, cdn_version: string}
+     * @return array<string, mixed>
      */
     public function sanitize($input): array
     {
         $current = self::get();
-        $source = (\is_array($input) && isset($input['source']) && $input['source'] === 'cdn')
-            ? 'cdn'
-            : 'plugin';
+        $input = \is_array($input) ? $input : [];
+        $defaults = self::defaults();
+        $libraries = [];
 
-        $version = \is_array($input) && isset($input['cdn_version'])
-            ? trim((string) $input['cdn_version'])
-            : $current['cdn_version'];
+        foreach ($defaults['libraries'] as $id => $libraryDefaults) {
+            $posted = isset($input['libraries'][$id]) && \is_array($input['libraries'][$id])
+                ? $input['libraries'][$id]
+                : [];
 
-        if ($version !== 'latest' && !preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/', $version)) {
+            $source = (isset($posted['source']) && $posted['source'] === 'cdn') ? 'cdn' : 'plugin';
+            $version = isset($posted['cdn_version']) ? trim((string) $posted['cdn_version']) : $libraryDefaults['cdn_version'];
+            if ($version !== 'latest' && !preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/', $version)) {
+                add_settings_error(
+                    self::OPTION,
+                    'wp_icons_invalid_version_' . $id,
+                    sprintf(
+                        /* translators: %s: icon library label */
+                        __('CDN version for %s must be “latest” or a valid semver (for example 0.468.0).', 'wpicons'),
+                        Registry::get($id)?->label() ?? $id
+                    )
+                );
+                $version = $current['libraries'][$id]['cdn_version'] ?? 'latest';
+            }
+
+            $libraries[$id] = [
+                'enabled' => !empty($posted['enabled']),
+                'source' => $source,
+                'cdn_version' => $version,
+            ];
+        }
+
+        $enabledIds = array_keys(array_filter($libraries, static fn ($row) => !empty($row['enabled'])));
+        if ($enabledIds === []) {
+            $libraries[$defaults['default_library']]['enabled'] = true;
+            $enabledIds = [$defaults['default_library']];
             add_settings_error(
                 self::OPTION,
-                'wp_icons_invalid_version',
-                __('CDN version must be “latest” or a valid Lucide semver (for example 0.468.0).', 'wpicons')
+                'wp_icons_library_required',
+                __('At least one icon library must stay enabled.', 'wpicons'),
+                'warning'
             );
-            $version = $current['cdn_version'];
+        }
+
+        $defaultLibrary = isset($input['default_library']) ? (string) $input['default_library'] : $current['default_library'];
+        if (!\in_array($defaultLibrary, $enabledIds, true)) {
+            $defaultLibrary = $enabledIds[0];
+        }
+
+        $size = isset($input['default_size']) ? (int) $input['default_size'] : $current['default_size'];
+        $stroke = isset($input['default_stroke']) && is_numeric($input['default_stroke'])
+            ? (float) $input['default_stroke']
+            : $current['default_stroke'];
+        $color = isset($input['default_color']) ? trim((string) $input['default_color']) : $current['default_color'];
+        if ($color === '') {
+            $color = 'currentColor';
         }
 
         return [
-            'source' => $source,
-            'cdn_version' => $version,
+            'default_library' => $defaultLibrary,
+            'default_size' => max(8, min(256, $size)),
+            'default_color' => $color,
+            'default_stroke' => max(0.25, min(4, $stroke)),
+            'libraries' => $libraries,
         ];
+    }
+
+    /**
+     * @param mixed $old
+     * @param mixed $new
+     */
+    public function onUpdated($old, $new): void
+    {
+        if (!\is_array($new)) {
+            return;
+        }
+
+        $needsRefresh = false;
+        foreach (array_keys(Registry::all()) as $id) {
+            if (self::libraryEnabled($new, $id) && self::librarySource($new, $id) === 'cdn') {
+                $needsRefresh = true;
+                break;
+            }
+        }
+
+        if ($needsRefresh && !wp_next_scheduled(CdnCatalog::CRON_HOOK)) {
+            wp_schedule_single_event(time() + 5, CdnCatalog::CRON_HOOK);
+        }
     }
 
     /**
@@ -109,10 +223,12 @@ class Settings
      */
     public function pluginLinks(array $links): array
     {
-        $url = admin_url('options-general.php?page=' . self::PAGE);
+        $library = admin_url('admin.php?page=wp-icons');
+        $settings = admin_url('admin.php?page=' . self::PAGE);
         array_unshift(
             $links,
-            '<a href="' . esc_url($url) . '">' . esc_html__('Settings', 'wpicons') . '</a>'
+            '<a href="' . esc_url($library) . '">' . esc_html__('Library', 'wpicons') . '</a>',
+            '<a href="' . esc_url($settings) . '">' . esc_html__('Settings', 'wpicons') . '</a>'
         );
 
         return $links;
@@ -124,57 +240,77 @@ class Settings
             return;
         }
 
-        $versions = $this->cdnVersions();
+        $settings = self::get();
+        $libraries = [];
+
+        foreach (Registry::all() as $id => $library) {
+            $libraries[] = [
+                'id' => $id,
+                'label' => $library->label(),
+                'package' => $library->npmPackage(),
+                'bundled_version' => $library->bundledVersion(),
+                'cdn_version' => self::libraryCdnVersion($settings, $id),
+                'source' => self::librarySource($settings, $id),
+                'enabled' => self::libraryEnabled($settings, $id),
+                'cdn_versions' => CdnCatalog::npmVersions($library->npmPackage()),
+                'cached_version' => CdnCatalog::version($id),
+                'cached_at' => CdnCatalog::fetchedAt($id),
+                'cached_count' => \count(CdnCatalog::icons($id)),
+            ];
+        }
 
         echo $this->templates->render('admin/settings', [
-            'settings' => self::get(),
+            'settings' => $settings,
             'option_name' => self::OPTION,
             'group' => self::GROUP,
-            'bundled_version' => LucideIcon::BUNDLED_VERSION,
-            'cdn_versions' => $versions,
-            'versions_fetch_failed' => $versions === [],
+            'libraries' => $libraries,
         ]);
     }
 
     /**
-     * Stable lucide versions from npm, newest first.
-     *
-     * @return array<int, string>
+     * @return array{
+     *   default_library: string,
+     *   default_size: int,
+     *   default_color: string,
+     *   default_stroke: float,
+     *   libraries: array<string, array{enabled: bool, source: string, cdn_version: string}>
+     * }
      */
-    private function cdnVersions(): array
+    public static function defaults(): array
     {
-        $cached = get_transient('wp_icons__npm_versions');
-        if (\is_array($cached)) {
-            return $cached;
+        $libraries = [];
+        foreach (array_keys(Registry::all()) as $id) {
+            $libraries[$id] = [
+                'enabled' => true,
+                'source' => 'plugin',
+                'cdn_version' => 'latest',
+            ];
         }
 
-        $response = wp_remote_get('https://registry.npmjs.org/lucide', [
-            'timeout' => 10,
-        ]);
+        return [
+            'default_library' => 'lucide',
+            'default_size' => 24,
+            'default_color' => 'currentColor',
+            'default_stroke' => 2.0,
+            'libraries' => $libraries,
+        ];
+    }
 
-        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
-            return [];
+    /**
+     * @param array<string, mixed> $stored
+     * @return array<string, mixed>
+     */
+    private static function migrate(array $stored): array
+    {
+        if (isset($stored['source']) && !isset($stored['libraries']['lucide'])) {
+            $stored['libraries'] ??= [];
+            $stored['libraries']['lucide'] = [
+                'enabled' => true,
+                'source' => $stored['source'] === 'cdn' ? 'cdn' : 'plugin',
+                'cdn_version' => isset($stored['cdn_version']) ? (string) $stored['cdn_version'] : 'latest',
+            ];
         }
 
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        if (!\is_array($body) || !isset($body['versions']) || !\is_array($body['versions'])) {
-            return [];
-        }
-
-        $versions = array_values(array_filter(
-            array_keys($body['versions']),
-            static function ($version) {
-                return \is_string($version) && preg_match('/^\d+\.\d+\.\d+$/', $version);
-            }
-        ));
-
-        usort($versions, static function ($a, $b) {
-            return version_compare($b, $a);
-        });
-
-        $versions = \array_slice($versions, 0, 50);
-        set_transient('wp_icons__npm_versions', $versions, 12 * HOUR_IN_SECONDS);
-
-        return $versions;
+        return $stored;
     }
 }

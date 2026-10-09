@@ -42,6 +42,7 @@ fs.readFile(path.join(__dirname, process.argv[2]), "utf8", (err, data) => {
             "src/includes",
             "src/languages",
             "src/templates",
+            "build",
             "vendor",
         ];
         foldersToZip.forEach((folder) => {

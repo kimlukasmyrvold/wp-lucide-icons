@@ -1,0 +1,52 @@
+@use "lib/config";
+@use "lib/themes";
+
+.#{config.$prefix} {
+    &__library {
+        margin: 1rem 20px 1rem 0;
+
+        &__root {
+            margin-top: calc(#{themes.base(spacing)} * 4);
+        }
+
+        &__app {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 17.5rem;
+            gap: calc(#{themes.base(spacing)} * 6);
+            align-items: start;
+        }
+
+        &__detail {
+            position: sticky;
+            top: 3rem;
+            border: 1px solid themes.getCSSVar(border);
+            border-radius: themes.base(radius-md);
+            background: themes.getCSSVar(card);
+            color: themes.getCSSVar(card-foreground);
+            padding: calc(#{themes.base(spacing)} * 4);
+            display: flex;
+            flex-direction: column;
+            gap: calc(#{themes.base(spacing)} * 3);
+        }
+
+        &__preview {
+            display: flex;
+            min-height: 6rem;
+            align-items: center;
+            justify-content: center;
+            background: themes.getCSSVar(secondary);
+            color: themes.getCSSVar(secondary-foreground);
+            border-radius: themes.base(radius-md);
+        }
+    }
+}
+
+@media (max-width: 960px) {
+    .#{config.$prefix}__library__app {
+        grid-template-columns: 1fr;
+    }
+
+    .#{config.$prefix}__library__detail {
+        position: static;
+    }
+}

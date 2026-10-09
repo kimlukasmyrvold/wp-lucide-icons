@@ -3,8 +3,12 @@
 namespace WPIcons;
 
 use WPIcons\Admin\Assets;
+use WPIcons\Admin\LibraryPage;
+use WPIcons\Admin\Menu;
 use WPIcons\Admin\Settings;
-use WPIcons\Admin\TinyMce;
+use WPIcons\Blocks\IconBlock;
+use WPIcons\Icons\Cdn\CdnCatalog;
+use WPIcons\Rest\IconsController;
 use WPIcons\Shortcode\Shortcode;
 use WPIcons\Template\Template;
 
@@ -37,13 +41,19 @@ class Plugin
         load_plugin_textdomain(
             'wpicons',
             false,
-            dirname(plugin_basename(WP_ICONS__FILE)) . '/languages'
+            dirname(plugin_basename(WP_ICONS__FILE)) . '/src/languages'
         );
 
+        $settings = new Settings($this->templates);
+        $library = new LibraryPage($this->templates);
+
         (new Assets($this->templates))->register();
-        (new Settings($this->templates))->register();
+        $settings->register();
+        (new Menu($this->templates, $settings, $library))->register();
         (new Shortcode())->register();
-        (new TinyMce())->register();
+        (new IconsController())->register();
+        (new IconBlock())->register();
+        (new CdnCatalog())->register();
     }
 
     public function templates(): Template

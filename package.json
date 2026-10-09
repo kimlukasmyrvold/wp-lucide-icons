@@ -9,6 +9,11 @@
         "material icons"
     ],
     "license": "GPLv2 or later",
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead"
+    ],
     "homepage": "https://github.com/kimlukasmyrvold/wp-lucide-icons#readme",
     "repository": {
         "type": "git",
@@ -18,9 +23,14 @@
         "url": "https://github.com/kimlukasmyrvold/wp-lucide-icons/issues"
     },
     "scripts": {
-        "sass": "sass -w src/assets/scss:src/assets/css --style compressed --no-source-map",
+        "sass": "node node_modules/sass/sass.js -w src/assets/scss:src/assets/css --style compressed --no-source-map",
+        "sass:build": "node node_modules/sass/sass.js src/assets/scss:src/assets/css --style compressed --no-source-map",
+        "build": "node node_modules/@wordpress/scripts/bin/wp-scripts.js build",
+        "start": "node node_modules/@wordpress/scripts/bin/wp-scripts.js start",
         "publish": "node publish.js wp-lucide-icons.php",
-        "sync-icons": "node scripts/sync-lucide-icons.js"
+        "sync-icons": "node scripts/sync-icons.js",
+        "sync-icons:lucide": "node scripts/sync-lucide-icons.js",
+        "sync-icons:material": "node scripts/sync-material-symbols.js"
     },
     "dependencies": {
         "archiver": "^7.0.1",
@@ -28,6 +38,7 @@
         "sass": "^1.83.0"
     },
     "devDependencies": {
+        "@wordpress/scripts": "^30.25.0",
         "tar": "^7.5.22"
     }
 }
