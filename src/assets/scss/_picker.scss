@@ -1,5 +1,14 @@
+@use "sass:map";
 @use "lib/config";
+@use "lib/mixins";
 @use "lib/themes";
+
+// Gutenberg and the icon modal sit on a light surface. The dark media query
+// must not repaint these shells when the browser prefers dark.
+.wpicons.wpicons__picker-modal,
+.wpicons.wpicons__inline-popover {
+    @include mixins.generateProperties(map.get(themes.$themes, light));
+}
 
 .#{config.$prefix} {
     &__picker {
@@ -25,7 +34,8 @@
             display: inline-flex;
             align-items: center;
             gap: calc(#{themes.base(spacing)} * 1.5);
-            border: 1px solid themes.getCSSVar(border);
+            min-height: 2.75rem;
+            border: 1px solid themes.getCSSVar(control-border);
             background: themes.getCSSVar(card);
             color: themes.getCSSVar(card-foreground);
             border-radius: themes.base(radius-sm);
@@ -54,7 +64,8 @@
 
         &__search input {
             min-width: 13.75rem;
-            border: 1px solid themes.getCSSVar(border);
+            min-height: 2.75rem;
+            border: 1px solid themes.getCSSVar(control-border);
             background: themes.getCSSVar(input);
             color: themes.getCSSVar(foreground);
             border-radius: themes.base(radius-sm);
@@ -72,11 +83,10 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
             gap: calc(#{themes.base(spacing)} * 2);
-            max-height: min(70vh, 40rem);
-            overflow: auto;
+            overflow: visible;
 
             &.is-loading {
-                min-height: 12rem;
+                min-height: 18rem;
 
                 .#{config.$prefix}__picker__item {
                     opacity: 0.35;
@@ -88,6 +98,8 @@
             position: absolute;
             inset: 0;
             z-index: 1;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -103,7 +115,7 @@
             align-items: center;
             gap: calc(#{themes.base(spacing)} * 1.5);
             padding: calc(#{themes.base(spacing)} * 2.5) calc(#{themes.base(spacing)} * 1.5);
-            border: 1px solid themes.getCSSVar(border);
+            border: 1px solid themes.getCSSVar(control-border);
             border-radius: themes.base(radius-md);
             background: themes.getCSSVar(card);
             color: themes.getCSSVar(card-foreground);
@@ -143,10 +155,11 @@
             justify-content: center;
             color: themes.getCSSVar(foreground);
 
-            .#{config.$prefix}__picker-modal & button {
+            button {
                 background: themes.getCSSVar(card);
                 color: themes.getCSSVar(card-foreground);
-                border: 1px solid themes.getCSSVar(border);
+                min-height: 2.75rem;
+                border: 1px solid themes.getCSSVar(control-border);
                 border-radius: themes.base(radius-sm);
                 padding: calc(#{themes.base(spacing)} * 1.5) calc(#{themes.base(spacing)} * 2.5);
                 cursor: pointer;
@@ -154,6 +167,11 @@
                 &:hover:not(:disabled) {
                     border-color: themes.getCSSVar(primary);
                     color: themes.getCSSVar(card-foreground);
+                }
+
+                &:focus-visible {
+                    outline: 2px solid themes.getCSSVar(ring);
+                    outline-offset: 1px;
                 }
 
                 &:disabled {
@@ -165,6 +183,18 @@
             }
         }
 
+        &__style {
+            display: flex;
+            flex-direction: column;
+            gap: calc(#{themes.base(spacing)} * 3);
+            padding-top: calc(#{themes.base(spacing)} * 3);
+            border-top: 1px solid themes.getCSSVar(border);
+
+            .components-base-control {
+                margin-bottom: 0;
+            }
+        }
+
         &__error,
         &__empty {
             margin: 0;
@@ -173,6 +203,18 @@
         }
 
         &-modal {
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 4rem);
+            overflow: hidden;
+
+            .components-modal__header {
+                flex: none;
+                border-bottom: 1px solid themes.getCSSVar(border);
+                background: themes.getCSSVar(background);
+                color: themes.getCSSVar(foreground);
+            }
+
             .components-modal__header,
             .components-modal__content {
                 background: themes.getCSSVar(background);
@@ -186,8 +228,36 @@
             }
 
             .components-modal__content {
+                flex: 1 1 auto;
+                min-height: 0;
                 width: min(57.5rem, 100vw);
+                overflow: auto;
             }
+
+            &--tinymce {
+                width: min(460px, calc(100vw - 2rem));
+                max-width: min(460px, calc(100vw - 2rem));
+                max-height: min(600px, calc(100vh - 4rem));
+
+                .components-modal__content {
+                    width: auto;
+                    max-width: 100%;
+                }
+            }
+        }
+    }
+
+    &__inline-popover {
+        .components-popover__content {
+            width: 18rem;
+            padding: calc(#{themes.base(spacing)} * 3);
+            background: themes.getCSSVar(background);
+            color: themes.getCSSVar(foreground);
+            border: 1px solid themes.getCSSVar(control-border);
+        }
+
+        .components-base-control {
+            margin-bottom: 0;
         }
     }
 }

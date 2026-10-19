@@ -55,7 +55,7 @@ class TinyMce
      */
     public function beforeInit(array $init): array
     {
-        $extra = 'img[class|src|alt|title|width|height|style|data-library|data-name|data-color|data-stroke],span[class|style|data-src|data-library|data-name|data-color|data-stroke]';
+        $extra = 'img[class|src|alt|title|width|height|style|data-src|data-library|data-name|data-color|data-stroke|data-size|data-title],span[class|style|data-src|data-library|data-name|data-color|data-stroke|data-size|data-title]';
         if (empty($init['extended_valid_elements'])) {
             $init['extended_valid_elements'] = $extra;
         } else {
@@ -71,26 +71,31 @@ class TinyMce
     }
 
     /**
-     * Keep the icon mask property when a style allow-list already exists.
+     * Keep icon preview styles when a style allow-list already exists.
      * An empty allow-list would replace TinyMCE's default and strip every other inline style.
      */
     private function allowMaskStyle(string $styles): string
     {
-        $property = '--wpicons-src';
+        $properties = ['--wpicons-src', 'background-color', 'width', 'height'];
         if (trim($styles) === '' || !str_contains($styles, '{')) {
             return $styles;
         }
 
-        if (str_contains($styles, $property)) {
-            return $styles;
-        }
-
         if (preg_match('/"\*"\s*:\s*"([^"]*)"/', $styles, $match) === 1) {
-            $next = $match[1] === '' ? $property : $match[1] . ',' . $property;
+            $existing = $match[1] === '' ? [] : array_map('trim', explode(',', $match[1]));
+            $missing = array_values(array_filter(
+                $properties,
+                static fn (string $property): bool => !\in_array($property, $existing, true)
+            ));
+            if ($missing === []) {
+                return $styles;
+            }
 
-            return str_replace($match[0], '"*":"' . $next . '"', $styles);
+            $next = array_values(array_filter([...$existing, ...$missing]));
+
+            return str_replace($match[0], '"*":"' . implode(',', $next) . '"', $styles);
         }
 
-        return rtrim(rtrim(trim($styles), '}')) . ',"*":"' . $property . '"}';
+        return rtrim(rtrim(trim($styles), '}')) . ',"*":"' . implode(',', $properties) . '"}';
     }
 }

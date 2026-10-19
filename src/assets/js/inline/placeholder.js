@@ -1,3 +1,5 @@
+import { fetchIcon } from '../picker/api';
+
 export const INLINE_CLASS = 'wpicons-inline';
 
 export const TRANSPARENT_SRC =
@@ -24,44 +26,137 @@ export function svgToDataUri(svg) {
     return 'data:image/svg+xml;base64,' + window.btoa(binary);
 }
 
+export function isInheritColor(color) {
+    const value = String(color ?? '').trim();
+    return value === '' || value.toLowerCase() === 'currentcolor';
+}
+
+export function safeColor(color) {
+    const value = String(color || '').trim();
+    if (isInheritColor(value)) {
+        return 'currentColor';
+    }
+    if (/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(value)) {
+        return value;
+    }
+    if (/^(?:rgb|hsl)a?\([0-9.,%\s/]+\)$/i.test(value)) {
+        return value.replace(/[;"\\]/g, '');
+    }
+    if (/^[a-z]{3,20}$/i.test(value)) {
+        return value.toLowerCase();
+    }
+    return 'currentColor';
+}
+
+export function explicitSize(size) {
+    const value = Number(size);
+    if (!Number.isFinite(value) || value <= 0) {
+        return '';
+    }
+    return String(Math.round(value));
+}
+
 export function iconMaskStyle(url) {
     return `--wpicons-src:url("${String(url)}")`;
+}
+
+export function iconPreviewStyle(url, color, size) {
+    const parts = [iconMaskStyle(url)];
+    const resolved = safeColor(color);
+    if (resolved !== 'currentColor') {
+        parts.push(`background-color:${resolved}`);
+    }
+    const pixels = explicitSize(size);
+    if (pixels) {
+        parts.push(`width:${pixels}px`);
+        parts.push(`height:${pixels}px`);
+    }
+    return parts.join(';');
+}
+
+function previousPreviewColor(style) {
+    const match = String(style || '').match(/background-color:\s*([^;]+)/i);
+    return match ? match[1].trim() : 'currentColor';
 }
 
 export function placeholderAttributes({
     library,
     name,
     svg,
+    url,
     color,
     stroke,
+    size,
+    title,
+    keepTypedColor = false,
+    previousStyle = '',
 }) {
     const defaults = pluginDefaults();
-    const url = svgToDataUri(svg);
+    const resolvedUrl = url || svgToDataUri(svg);
+    const resolvedSize = explicitSize(size);
+    const resolvedTitle = String(title || '').replace(/[\r\n]+/g, ' ').trim();
+    const typed = String(color ?? '').trim();
+    let resolvedColor = safeColor(color || defaults.color || 'currentColor');
+    let paint = resolvedColor;
+    if (keepTypedColor) {
+        resolvedColor = isInheritColor(typed) ? 'currentColor' : typed;
+        const safe = safeColor(typed);
+        paint = !isInheritColor(typed) && safe === 'currentColor'
+            ? previousPreviewColor(previousStyle)
+            : safe;
+    }
 
     return {
-        url,
+        url: resolvedUrl,
         src: TRANSPARENT_SRC,
-        alt: '',
-        iconStyle: iconMaskStyle(url),
+        alt: resolvedTitle,
+        iconStyle: iconPreviewStyle(resolvedUrl, paint, resolvedSize),
         library: String(library || defaults.library || 'lucide'),
         iconName: String(name || ''),
-        color: String(color || defaults.color || 'currentColor'),
+        color: resolvedColor,
         stroke: String(stroke ?? defaults.stroke ?? 2),
+        size: resolvedSize,
+        title: resolvedTitle,
     };
 }
 
 export function placeholderHtml(icon) {
     const attrs = placeholderAttributes(icon);
+    const sizeStyle = attrs.size ? `width:${attrs.size}px;height:${attrs.size}px` : '';
 
     return (
         `<img class="${INLINE_CLASS}"` +
         ` src="${escapeAttr(attrs.url)}"` +
+        ` data-src="${escapeAttr(attrs.url)}"` +
+        (sizeStyle ? ` style="${escapeAttr(sizeStyle)}"` : '') +
         ` data-library="${escapeAttr(attrs.library)}"` +
         ` data-name="${escapeAttr(attrs.iconName)}"` +
         ` data-color="${escapeAttr(attrs.color)}"` +
         ` data-stroke="${escapeAttr(attrs.stroke)}"` +
-        ` alt="" />`
+        optionalAttr('data-size', attrs.size) +
+        optionalAttr('data-title', attrs.title) +
+        ` alt="${escapeAttr(attrs.alt)}" />`
     );
+}
+
+export async function resolveMaskSvg({ library, name, svg, stroke }) {
+    const strokeValue = Number(stroke ?? 2);
+    if (svg && strokeValue === 2) {
+        return svg;
+    }
+
+    try {
+        const data = await fetchIcon({
+            library,
+            name,
+            size: 24,
+            color: 'currentColor',
+            stroke: strokeValue,
+        });
+        return data.svg || svg || '';
+    } catch (error) {
+        return svg || '';
+    }
 }
 
 export function migrateInlineIconHtml(html) {
@@ -80,17 +175,22 @@ export function migrateInlineIconHtml(html) {
         }
 
         const defaults = pluginDefaults();
+        const color = readAttr(open, 'data-color') || defaults.color || 'currentColor';
+        const size = readAttr(open, 'data-size');
+        const title = readAttr(open, 'data-title');
 
         return (
             `<img class="${INLINE_CLASS}"` +
             ` src="${escapeAttr(TRANSPARENT_SRC)}"` +
             ` data-src="${escapeAttr(url)}"` +
-            ` style="${escapeAttr(iconMaskStyle(url))}"` +
+            ` style="${escapeAttr(iconPreviewStyle(url, color, size))}"` +
             ` data-library="${escapeAttr(readAttr(open, 'data-library') || defaults.library || 'lucide')}"` +
             ` data-name="${escapeAttr(iconName)}"` +
-            ` data-color="${escapeAttr(readAttr(open, 'data-color') || defaults.color || 'currentColor')}"` +
+            ` data-color="${escapeAttr(safeColor(color))}"` +
             ` data-stroke="${escapeAttr(readAttr(open, 'data-stroke') || String(defaults.stroke ?? 2))}"` +
-            ` alt="" />` +
+            optionalAttr('data-size', explicitSize(size)) +
+            optionalAttr('data-title', title) +
+            ` alt="${escapeAttr(title)}" />` +
             inner
         );
     });
@@ -110,6 +210,13 @@ function iconUrl(tag) {
 function readAttr(tag, name) {
     const match = tag.match(new RegExp(`\\s${name}\\s*=\\s*("|')([\\s\\S]*?)\\1`, 'i'));
     return match ? match[2] : '';
+}
+
+function optionalAttr(name, value) {
+    if (value === undefined || value === null || value === '') {
+        return '';
+    }
+    return ` ${name}="${escapeAttr(value)}"`;
 }
 
 function escapeAttr(value) {

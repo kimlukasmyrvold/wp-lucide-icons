@@ -11,6 +11,37 @@ const pluginDefaults = window.WPIconsAdmin?.defaults || {
     stroke: 2,
 };
 
+function paintIcon(svg, { size, color, stroke, supportsStroke }) {
+    if (!svg || typeof DOMParser === 'undefined') {
+        return svg || '';
+    }
+
+    const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
+    const root = doc.querySelector('svg');
+    if (!root || doc.querySelector('parsererror')) {
+        return svg;
+    }
+
+    const pixels = Number(size) > 0 ? String(Math.round(Number(size))) : '24';
+    root.setAttribute('width', pixels);
+    root.setAttribute('height', pixels);
+
+    const paint = color || 'currentColor';
+    const strokeAttr = root.getAttribute('stroke');
+    const fill = root.getAttribute('fill');
+    if (strokeAttr && strokeAttr !== 'none') {
+        root.setAttribute('stroke', paint);
+    }
+    if (fill && fill !== 'none') {
+        root.setAttribute('fill', paint);
+    }
+    if (supportsStroke && root.hasAttribute('stroke-width')) {
+        root.setAttribute('stroke-width', String(stroke ?? 2));
+    }
+
+    return root.outerHTML;
+}
+
 function LibraryApp() {
     const [library, setLibrary] = useState(pluginDefaults.library);
     const [name, setName] = useState('circle');
@@ -19,7 +50,7 @@ function LibraryApp() {
     const [stroke, setStroke] = useState(pluginDefaults.stroke);
     const [useCurrentColor, setUseCurrentColor] = useState(true);
     const [supportsStroke, setSupportsStroke] = useState(true);
-    const [preview, setPreview] = useState('');
+    const [sourceSvg, setSourceSvg] = useState('');
     const [copied, setCopied] = useState('');
 
     const shortcode = useMemo(() => {
@@ -35,6 +66,13 @@ function LibraryApp() {
         return `[wp_icon ${attrs.join(' ')}]`;
     }, [library, name, size, color, stroke, useCurrentColor, supportsStroke]);
 
+    const preview = useMemo(() => paintIcon(sourceSvg, {
+        size,
+        color: useCurrentColor ? 'currentColor' : color,
+        stroke,
+        supportsStroke,
+    }), [sourceSvg, size, color, stroke, useCurrentColor, supportsStroke]);
+
     useEffect(() => {
         fetchLibraries()
             .then((data) => {
@@ -45,29 +83,33 @@ function LibraryApp() {
     }, [library]);
 
     useEffect(() => {
+        if (sourceSvg) {
+            return undefined;
+        }
+
         let cancelled = false;
         fetchIcon({
             library,
             name,
-            size,
-            color: useCurrentColor ? 'currentColor' : color,
-            stroke,
+            size: 24,
+            color: 'currentColor',
+            stroke: 2,
         })
             .then((data) => {
-                if (!cancelled) {
-                    setPreview(data.svg || '');
+                if (!cancelled && data.svg) {
+                    setSourceSvg(data.svg);
                 }
             })
             .catch(() => {
                 if (!cancelled) {
-                    setPreview('');
+                    setSourceSvg('');
                 }
             });
 
         return () => {
             cancelled = true;
         };
-    }, [library, name, size, color, stroke, useCurrentColor]);
+    }, [library, name, sourceSvg]);
 
     async function copyText(text, key) {
         try {
@@ -85,10 +127,14 @@ function LibraryApp() {
                 <IconPicker
                     library={library}
                     name={name}
-                    onLibraryChange={setLibrary}
+                    onLibraryChange={(nextLibrary) => {
+                        setLibrary(nextLibrary);
+                        setSourceSvg('');
+                    }}
                     onSelect={(icon) => {
                         setLibrary(icon.library);
                         setName(icon.name);
+                        setSourceSvg(icon.svg || '');
                     }}
                 />
             </div>

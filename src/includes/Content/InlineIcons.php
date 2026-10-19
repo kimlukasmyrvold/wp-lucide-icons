@@ -44,6 +44,8 @@ class InlineIcons
             $tags[$tag]['data-name'] = true;
             $tags[$tag]['data-color'] = true;
             $tags[$tag]['data-stroke'] = true;
+            $tags[$tag]['data-size'] = true;
+            $tags[$tag]['data-title'] = true;
         }
 
         return $tags;
@@ -89,16 +91,42 @@ class InlineIcons
             return $tag;
         }
 
-        $svg = (new Renderer())->fromAttributes([
+        $size = (int) $processor->get_attribute('data-size');
+        if ($size < 1 || $size > 512) {
+            $size = 0;
+        }
+
+        $attributes = [
             'library' => (string) $processor->get_attribute('data-library'),
             'name' => $name,
-            'size' => 24,
             'color' => (string) ($processor->get_attribute('data-color') ?: 'currentColor'),
             'stroke' => $processor->get_attribute('data-stroke'),
             'class' => 'wpicons-inline',
-        ]);
+            'title' => trim((string) $processor->get_attribute('data-title')),
+        ];
+        if ($size > 0) {
+            $attributes['size'] = $size;
+        }
+
+        $svg = (new Renderer())->fromAttributes($attributes);
+        if ($svg !== '' && $size > 0) {
+            $svg = $this->withExplicitSize($svg, $size);
+        }
 
         return $svg !== '' ? $svg . $inner : $tag;
+    }
+
+    private function withExplicitSize(string $svg, int $size): string
+    {
+        $processor = new WP_HTML_Tag_Processor($svg);
+        if (!$processor->next_tag('svg')) {
+            return $svg;
+        }
+
+        $processor->set_attribute('style', 'width:' . $size . 'px;height:' . $size . 'px');
+        $updated = $processor->get_updated_html();
+
+        return \is_string($updated) && $updated !== '' ? $updated : $svg;
     }
 
     private function shouldReplace(): bool

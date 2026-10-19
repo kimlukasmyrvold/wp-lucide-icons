@@ -4,6 +4,51 @@
 .#{config.$prefix} {
     &__settings {
         margin: 1rem 20px 1rem 0;
+        color: themes.getCSSVar(foreground);
+
+        input[type="text"],
+        input[type="number"],
+        input[type="search"],
+        input[type="url"],
+        select,
+        textarea {
+            min-height: 2.75rem;
+            border: 1px solid themes.getCSSVar(control-border);
+            background: themes.getCSSVar(input);
+            color: themes.getCSSVar(foreground);
+            border-radius: themes.base(radius-sm);
+            padding: calc(#{themes.base(spacing)} * 1.5) calc(#{themes.base(spacing)} * 2);
+
+            &:focus {
+                border-color: themes.getCSSVar(primary);
+                outline: 2px solid themes.getCSSVar(ring);
+                outline-offset: 2px;
+                box-shadow: none;
+            }
+        }
+
+        .description {
+            color: themes.getCSSVar(muted-foreground);
+        }
+
+        .button-primary,
+        .button.button-primary {
+            min-height: 2.75rem;
+            background: themes.getCSSVar(primary);
+            border-color: themes.getCSSVar(primary);
+            color: themes.getCSSVar(primary-foreground);
+            border-radius: themes.base(radius-sm);
+
+            &:hover,
+            &:focus {
+                background: color-mix(in srgb, themes.getCSSVar(primary) 86%, themes.getCSSVar(foreground));
+                border-color: themes.getCSSVar(primary);
+                color: themes.getCSSVar(primary-foreground);
+                outline: 2px solid themes.getCSSVar(ring);
+                outline-offset: 2px;
+                box-shadow: none;
+            }
+        }
 
         &__library {
             margin: calc(#{themes.base(spacing)} * 6) 0;

@@ -1,6 +1,46 @@
 (function () {
     var TRANSPARENT_SRC =
         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    var applied = typeof WeakMap === 'function' ? new WeakMap() : null;
+
+    function signature(node, src) {
+        return [
+            src,
+            node.getAttribute('data-color') || '',
+            node.getAttribute('data-size') || '',
+        ].join('|');
+    }
+
+    function applyPresentation(node) {
+        var color = node.getAttribute('data-color') || '';
+        if (color && color.toLowerCase() !== 'currentcolor') {
+            node.style.setProperty('background-color', color);
+        } else {
+            node.style.removeProperty('background-color');
+        }
+
+        var size = node.getAttribute('data-size') || '';
+        if (/^\d+$/.test(size)) {
+            node.style.setProperty('width', size + 'px');
+            node.style.setProperty('height', size + 'px');
+        } else {
+            node.style.removeProperty('width');
+            node.style.removeProperty('height');
+        }
+    }
+
+    function alreadyApplied(node, src) {
+        if (!applied) {
+            return false;
+        }
+        return applied.get(node) === signature(node, src);
+    }
+
+    function markApplied(node, src) {
+        if (applied) {
+            applied.set(node, signature(node, src));
+        }
+    }
 
     function svgUrl(node) {
         var dataSrc = node.getAttribute('data-src') || '';
@@ -19,11 +59,12 @@
         if (!src) {
             return;
         }
-        var current = node.style.getPropertyValue('--wpicons-src');
-        if (current && current.indexOf(src) !== -1) {
+        if (alreadyApplied(node, src)) {
             return;
         }
+        markApplied(node, src);
         node.style.setProperty('--wpicons-src', 'url("' + src.replace(/"/g, '') + '")');
+        applyPresentation(node);
     }
 
     function maskImage(node) {
@@ -31,13 +72,14 @@
         if (!src) {
             return;
         }
-        var current = node.style.getPropertyValue('--wpicons-src');
         var visible = node.getAttribute('src') || '';
-        if (current && current.indexOf(src) !== -1 && visible === TRANSPARENT_SRC) {
+        if (alreadyApplied(node, src) && visible === TRANSPARENT_SRC) {
             return;
         }
+        markApplied(node, src);
         node.setAttribute('data-src', src);
         node.style.setProperty('--wpicons-src', 'url("' + src.replace(/"/g, '') + '")');
+        applyPresentation(node);
         if (visible !== TRANSPARENT_SRC) {
             node.setAttribute('src', TRANSPARENT_SRC);
         }
@@ -77,7 +119,7 @@
             childList: true,
             subtree: true,
             attributes: true,
-            attributeFilter: ['src', 'data-src', 'class', 'style'],
+            attributeFilter: ['src', 'data-src', 'data-color', 'data-size', 'class', 'style'],
         });
     }
 

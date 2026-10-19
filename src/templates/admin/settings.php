@@ -15,7 +15,7 @@ $default_color = $settings['default_color'];
 $default_stroke = $settings['default_stroke'];
 
 ?>
-<div class="wpicons" theme="light">
+<div class="wpicons wpicons_" theme="light">
     <div class="wpicons__settings">
         <h1><?= esc_html(get_admin_page_title()); ?></h1>
         <?php settings_errors(); ?>

@@ -27,6 +27,14 @@
             display: flex;
             flex-direction: column;
             gap: calc(#{themes.base(spacing)} * 3);
+
+            .components-base-control {
+                margin-bottom: 0;
+            }
+
+            .description {
+                color: themes.getCSSVar(muted-foreground);
+            }
         }
 
         &__preview {
