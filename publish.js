@@ -1,3 +1,7 @@
+/**
+ * Version: 1.0.0
+ */
+
 const fs = require("fs-extra");
 const path = require("path");
 const archiver = require("archiver");
@@ -14,20 +18,18 @@ fs.readFile(path.join(__dirname, process.argv[2]), "utf8", (err, data) => {
     );
     if (versionMatch && filename) {
         const version = versionMatch[1];
+        const folder = `releases/v${version}`;
+        const filepath = `${folder}/${filename}.zip`;
 
-        fs.ensureDirSync(path.join(__dirname, `releases/v${version}`));
-        const output = fs.createWriteStream(
-            path.join(__dirname, `releases/v${version}/${filename}.zip`),
-        );
+        fs.ensureDirSync(path.join(__dirname, folder));
+        const output = fs.createWriteStream(path.join(__dirname, filepath));
         const archive = archiver("zip", {
             zlib: { level: 9 },
         });
 
         output.on("close", function () {
             console.log(archive.pointer() + " total bytes");
-            console.log(
-                "Zip file has been finalized and the output file descriptor has closed.",
-            );
+            console.log(`Zip file done, outputted to: ${filepath}`);
         });
 
         archive.on("error", function (err) {
