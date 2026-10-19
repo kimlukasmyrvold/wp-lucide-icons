@@ -15,8 +15,8 @@ class InlineIcons
     {
         add_filter('wp_kses_allowed_html', [$this, 'allowAttributes'], 10, 2);
         add_filter('render_block', [$this, 'replaceInHtml']);
-        add_filter('the_content', [$this, 'replaceInHtml'], 12);
-        add_filter('acf_the_content', [$this, 'replaceInHtml'], 12);
+        add_filter('the_content', [$this, 'replaceInHtml'], 13);
+        add_filter('acf_the_content', [$this, 'replaceInHtml'], 13);
     }
 
     /**
@@ -32,11 +32,19 @@ class InlineIcons
         if (!isset($tags['img']) || !\is_array($tags['img'])) {
             $tags['img'] = [];
         }
+        if (!isset($tags['span']) || !\is_array($tags['span'])) {
+            $tags['span'] = [];
+        }
 
-        $tags['img']['data-library'] = true;
-        $tags['img']['data-name'] = true;
-        $tags['img']['data-color'] = true;
-        $tags['img']['data-stroke'] = true;
+        foreach (['img', 'span'] as $tag) {
+            $tags[$tag]['class'] = true;
+            $tags[$tag]['style'] = true;
+            $tags[$tag]['data-src'] = true;
+            $tags[$tag]['data-library'] = true;
+            $tags[$tag]['data-name'] = true;
+            $tags[$tag]['data-color'] = true;
+            $tags[$tag]['data-stroke'] = true;
+        }
 
         return $tags;
     }
@@ -52,7 +60,7 @@ class InlineIcons
         }
 
         $replaced = preg_replace_callback(
-            '/<img\b(?=[^>]*\bwpicons-inline\b)[^>]*>/i',
+            '/<(?:img\b(?=[^>]*\bwpicons-inline\b)[^>]*\/?>|span\b(?=[^>]*\bwpicons-inline\b)[^>]*>.*?<\/span>)/is',
             [$this, 'replaceTag'],
             $html
         );
@@ -65,14 +73,20 @@ class InlineIcons
      */
     private function replaceTag(array $matches): string
     {
-        $processor = new WP_HTML_Tag_Processor($matches[0]);
-        if (!$processor->next_tag('img')) {
-            return $matches[0];
+        $tag = $matches[0];
+        $inner = '';
+        if (preg_match('/^<span\b[^>]*>(.*)<\/span>$/is', $tag, $innerMatch) === 1) {
+            $inner = $innerMatch[1];
+        }
+
+        $processor = new WP_HTML_Tag_Processor($tag);
+        if (!$processor->next_tag()) {
+            return $tag;
         }
 
         $name = trim((string) $processor->get_attribute('data-name'));
         if ($name === '') {
-            return $matches[0];
+            return $tag;
         }
 
         $svg = (new Renderer())->fromAttributes([
@@ -84,7 +98,7 @@ class InlineIcons
             'class' => 'wpicons-inline',
         ]);
 
-        return $svg !== '' ? $svg : $matches[0];
+        return $svg !== '' ? $svg . $inner : $tag;
     }
 
     private function shouldReplace(): bool

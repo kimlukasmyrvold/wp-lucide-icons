@@ -1,6 +1,35 @@
 import { useEffect, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { Spinner } from '@wordpress/components';
 import { fetchIcons, fetchLibraries } from './api';
+
+const pageCache = new Map();
+
+function pageCacheKey(library, search, page) {
+    return `${library}|${search}|${page}`;
+}
+
+function loadPage(library, search, page) {
+    const key = pageCacheKey(library, search, page);
+    if (pageCache.has(key)) {
+        return Promise.resolve(pageCache.get(key));
+    }
+
+    return fetchIcons({ library, search, page, perPage: 80 }).then((data) => {
+        pageCache.set(key, data);
+        return data;
+    });
+}
+
+function prefetchPage(library, search, page, totalPages) {
+    if (!library || page < 1 || page > totalPages) {
+        return;
+    }
+    if (pageCache.has(pageCacheKey(library, search, page))) {
+        return;
+    }
+    loadPage(library, search, page).catch(() => {});
+}
 
 export default function IconPicker({
     library,
@@ -62,10 +91,21 @@ export default function IconPicker({
             return undefined;
         }
 
+        const cached = pageCache.get(pageCacheKey(library, search, page));
+        if (cached) {
+            setItems(cached.items || []);
+            setTotal(cached.total || 0);
+            setTotalPages(cached.totalPages || 1);
+            setLoading(false);
+            setError('');
+            prefetchPage(library, search, page + 1, cached.totalPages || 1);
+            return undefined;
+        }
+
         let cancelled = false;
         setLoading(true);
         setError('');
-        fetchIcons({ library, search, page, perPage: 80 })
+        loadPage(library, search, page)
             .then((data) => {
                 if (cancelled) {
                     return;
@@ -73,6 +113,7 @@ export default function IconPicker({
                 setItems(data.items || []);
                 setTotal(data.total || 0);
                 setTotalPages(data.totalPages || 1);
+                prefetchPage(library, search, page + 1, data.totalPages || 1);
             })
             .catch(() => {
                 if (!cancelled) {
@@ -105,6 +146,7 @@ export default function IconPicker({
                             key={item.id}
                             type="button"
                             className={`wpicons__picker__tab${item.id === library ? ' is-active' : ''}`}
+                            disabled={loading}
                             onClick={() => {
                                 onLibraryChange?.(item.id);
                                 setPage(1);
@@ -132,7 +174,13 @@ export default function IconPicker({
                 </p>
             ) : null}
             {error ? <p className="wpicons__picker__error">{error}</p> : null}
-            <div className="wpicons__picker__grid" aria-busy={loading}>
+            <div className={`wpicons__picker__grid${loading ? ' is-loading' : ''}`} aria-busy={loading}>
+                {loading ? (
+                    <div className="wpicons__picker__loading">
+                        <Spinner />
+                        <span>{__('Loading icons', 'wpicons')}</span>
+                    </div>
+                ) : null}
                 {items.map((item) => (
                     <button
                         key={`${library}-${item.name}`}
@@ -154,7 +202,7 @@ export default function IconPicker({
             </div>
             {totalPages > 1 ? (
                 <div className="wpicons__picker__pager">
-                    <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>
+                    <button type="button" disabled={loading || page <= 1} onClick={() => setPage((value) => value - 1)}>
                         {__('Previous', 'wpicons')}
                     </button>
                     <span>
@@ -162,7 +210,7 @@ export default function IconPicker({
                     </span>
                     <button
                         type="button"
-                        disabled={page >= totalPages}
+                        disabled={loading || page >= totalPages}
                         onClick={() => setPage((value) => value + 1)}
                     >
                         {__('Next', 'wpicons')}

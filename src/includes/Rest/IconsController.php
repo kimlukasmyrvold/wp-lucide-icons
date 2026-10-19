@@ -137,6 +137,15 @@ class IconsController
         $page = max(1, (int) $request->get_param('page'));
         $perPage = min(80, max(1, (int) $request->get_param('per_page')));
 
+        $cacheKey = '';
+        if ($search === '') {
+            $cacheKey = 'wpicons_icons_' . md5($libraryId . '|' . CatalogStore::version($libraryId) . '|' . $page . '|' . $perPage);
+            $cached = get_transient($cacheKey);
+            if (\is_array($cached)) {
+                return $this->iconsResponse($cached);
+            }
+        }
+
         $names = CatalogStore::names($libraryId);
         if ($search !== '') {
             $names = array_values(array_filter(
@@ -164,16 +173,30 @@ class IconsController
             ];
         }
 
-        $response = new WP_REST_Response([
+        $payload = [
             'library' => $libraryId,
             'items' => $items,
             'total' => $total,
             'page' => $page,
             'perPage' => $perPage,
             'totalPages' => (int) max(1, ceil($total / $perPage)),
-        ]);
-        $response->header('X-WP-Total', (string) $total);
-        $response->header('X-WP-TotalPages', (string) max(1, (int) ceil($total / $perPage)));
+        ];
+
+        if ($cacheKey !== '') {
+            set_transient($cacheKey, $payload, HOUR_IN_SECONDS);
+        }
+
+        return $this->iconsResponse($payload);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function iconsResponse(array $payload): WP_REST_Response
+    {
+        $response = new WP_REST_Response($payload);
+        $response->header('X-WP-Total', (string) ($payload['total'] ?? 0));
+        $response->header('X-WP-TotalPages', (string) ($payload['totalPages'] ?? 1));
 
         return $response;
     }

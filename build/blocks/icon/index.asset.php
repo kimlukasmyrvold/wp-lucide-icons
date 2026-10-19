@@ -5,9 +5,10 @@
 		'wp-block-editor',
 		'wp-blocks',
 		'wp-components',
+		'wp-data',
 		'wp-element',
 		'wp-i18n',
 		'wp-rich-text'
 	),
-	'version' => '516ed78d40f872a8d929'
+	'version' => '71f8a13b46cb4c3c7b37'
 );

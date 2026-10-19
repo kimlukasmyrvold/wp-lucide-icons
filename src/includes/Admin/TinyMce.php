@@ -55,13 +55,42 @@ class TinyMce
      */
     public function beforeInit(array $init): array
     {
-        $extra = 'img[class|src|alt|title|width|height|style|data-library|data-name|data-color|data-stroke]';
+        $extra = 'img[class|src|alt|title|width|height|style|data-library|data-name|data-color|data-stroke],span[class|style|data-src|data-library|data-name|data-color|data-stroke]';
         if (empty($init['extended_valid_elements'])) {
             $init['extended_valid_elements'] = $extra;
         } else {
             $init['extended_valid_elements'] .= ',' . $extra;
         }
 
+        $init['allow_html_data_urls'] = true;
+        if (isset($init['valid_styles']) && \is_string($init['valid_styles'])) {
+            $init['valid_styles'] = $this->allowMaskStyle($init['valid_styles']);
+        }
+
         return $init;
+    }
+
+    /**
+     * Keep the icon mask property when a style allow-list already exists.
+     * An empty allow-list would replace TinyMCE's default and strip every other inline style.
+     */
+    private function allowMaskStyle(string $styles): string
+    {
+        $property = '--wpicons-src';
+        if (trim($styles) === '' || !str_contains($styles, '{')) {
+            return $styles;
+        }
+
+        if (str_contains($styles, $property)) {
+            return $styles;
+        }
+
+        if (preg_match('/"\*"\s*:\s*"([^"]*)"/', $styles, $match) === 1) {
+            $next = $match[1] === '' ? $property : $match[1] . ',' . $property;
+
+            return str_replace($match[0], '"*":"' . $next . '"', $styles);
+        }
+
+        return rtrim(rtrim(trim($styles), '}')) . ',"*":"' . $property . '"}';
     }
 }

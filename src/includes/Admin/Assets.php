@@ -29,6 +29,19 @@ class Assets
     public function enqueueFront(): void
     {
         $this->enqueueWpiconsStyle('wpicons');
+
+        if (!isset($_GET['uxb_iframe'])) {
+            return;
+        }
+
+        $relative = 'js/inline/mask.js';
+        wp_enqueue_script(
+            'wpicons-inline-mask',
+            $this->assetUrl($relative),
+            [],
+            $this->assetVersion($relative),
+            true
+        );
     }
 
     public function enqueueAdmin(string $hook): void

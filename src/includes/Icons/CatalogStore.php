@@ -11,6 +11,9 @@ if (!\defined('ABSPATH')) {
 
 final class CatalogStore
 {
+    /** @var array<string, list<string>> */
+    private static array $names = [];
+
     public static function inner(string $libraryId, string $name): ?string
     {
         $library = Registry::get($libraryId);
@@ -39,10 +42,16 @@ final class CatalogStore
             return [];
         }
 
-        $names = $library->bundledNames();
         $settings = Settings::get();
+        $source = Settings::librarySource($settings, $libraryId);
+        $cacheKey = $libraryId . ':' . $source;
+        if (isset(self::$names[$cacheKey])) {
+            return self::$names[$cacheKey];
+        }
 
-        if (Settings::librarySource($settings, $libraryId) === 'cdn') {
+        $names = $library->bundledNames();
+
+        if ($source === 'cdn') {
             $cdnNames = CdnCatalog::names($libraryId);
             if ($cdnNames !== []) {
                 $names = array_values(array_unique([...$cdnNames, ...$names]));
@@ -50,6 +59,7 @@ final class CatalogStore
         }
 
         sort($names, SORT_STRING);
+        self::$names[$cacheKey] = $names;
 
         return $names;
     }
