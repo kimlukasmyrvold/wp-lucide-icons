@@ -92,9 +92,6 @@ export default function Edit({ attributes, setAttributes }) {
                             }
                             if (Object.prototype.hasOwnProperty.call(patch, 'color')) {
                                 next.color = patch.color;
-                                // #region agent log
-                                fetch('http://127.0.0.1:7861/ingest/e51822a5-516d-4574-a743-ff8836d1dd47',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'22d134'},body:JSON.stringify({sessionId:'22d134',hypothesisId:'D',location:'edit.js:sidebar',message:'block color attribute',data:{from:color,to:patch.color},timestamp:Date.now()})}).catch(()=>{});
-                                // #endregion
                             }
                             if (Object.prototype.hasOwnProperty.call(patch, 'stroke')) {
                                 next.strokeWidth = patch.stroke;

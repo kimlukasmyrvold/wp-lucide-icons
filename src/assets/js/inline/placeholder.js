@@ -57,7 +57,7 @@ export function explicitSize(size) {
 }
 
 export function iconMaskStyle(url) {
-    return `--wpicons-src:url("${String(url)}")`;
+    return `--wpicons-src:url(${String(url).replace(/["'()\\]/g, '')})`;
 }
 
 export function iconPreviewStyle(url, color, size) {

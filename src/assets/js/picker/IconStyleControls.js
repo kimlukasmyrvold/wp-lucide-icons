@@ -40,15 +40,18 @@ export default function IconStyleControls({
             <ToggleControl
                 label={__('Inherit text color', 'wpicons')}
                 checked={inherit}
-                onChange={(checked) => onChange?.({
-                    color: checked ? 'currentColor' : '#000000',
-                })}
+                onChange={(checked) => {
+                    const nextColor = checked ? 'currentColor' : '#000000';
+                    onChange?.({ color: nextColor });
+                }}
             />
             {!inherit ? (
                 <TextControl
                     label={__('Color', 'wpicons')}
                     value={color || ''}
-                    onChange={(value) => onChange?.({ color: value })}
+                    onChange={(value) => {
+                        onChange?.({ color: value });
+                    }}
                 />
             ) : null}
             {supportsStroke ? (

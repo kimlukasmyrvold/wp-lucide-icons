@@ -36,7 +36,8 @@ function updateObjectAt(value, index, attributes) {
     if (!value || index === null || index === undefined) {
         return null;
     }
-    const replacements = Array.from(value.replacements || []);
+    const source = value.replacements || [];
+    const replacements = source.slice();
     const current = replacements[index];
     if (!current || current.type !== FORMAT_NAME) {
         return null;
@@ -125,11 +126,9 @@ function Edit({
             return undefined;
         }
         editIndexRef.current = value.start;
-        setDraft(draftFromAttributes(activeObjectAttributes));
+        const nextDraft = draftFromAttributes(activeObjectAttributes);
+        setDraft(nextDraft);
         setPinned(true);
-        // #region agent log
-        fetch('http://127.0.0.1:7861/ingest/e51822a5-516d-4574-a743-ff8836d1dd47',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'22d134'},body:JSON.stringify({sessionId:'22d134',hypothesisId:'C',location:'inline-icon.js:selectedKey',message:'draft reset from active object',data:{selectedKey,color:activeObjectAttributes?.color||'',styleHasBg:String(activeObjectAttributes?.iconStyle||'').includes('background-color')},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         return undefined;
     }, [selectedKey]);
 
@@ -144,9 +143,6 @@ function Edit({
             if (stayOpen()) {
                 return;
             }
-            // #region agent log
-            fetch('http://127.0.0.1:7861/ingest/e51822a5-516d-4574-a743-ff8836d1dd47',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'22d134'},body:JSON.stringify({sessionId:'22d134',hypothesisId:'B',location:'inline-icon.js:unpin',message:'unpin because object inactive',data:{hold:holdOpenRef.current,pointer:pointerInsideRef.current,active:document.activeElement&&document.activeElement.tagName},timestamp:Date.now()})}).catch(()=>{});
-            // #endregion
             setPinned(false);
         }, 0);
 
@@ -268,9 +264,6 @@ function Edit({
         const currentValue = valueRef.current;
         const current = currentValue?.replacements?.[index];
         if (!current || current.type !== FORMAT_NAME) {
-            // #region agent log
-            fetch('http://127.0.0.1:7861/ingest/e51822a5-516d-4574-a743-ff8836d1dd47',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'22d134'},body:JSON.stringify({sessionId:'22d134',hypothesisId:'A',location:'inline-icon.js:commitStyle',message:'commit skipped',data:{index,hasCurrent:Boolean(current),type:current&&current.type,patchColor:Object.prototype.hasOwnProperty.call(patch,'color')?patch.color:undefined},timestamp:Date.now()})}).catch(()=>{});
-            // #endregion
             return;
         }
 
@@ -280,6 +273,8 @@ function Edit({
             nextSize = patch.matchText ? '' : (nextDraft?.size || defaults.size || 24);
         } else if (Object.prototype.hasOwnProperty.call(patch, 'size')) {
             nextSize = patch.size;
+        } else if (nextDraft && nextDraft.matchText === false && nextDraft.size) {
+            nextSize = nextDraft.size;
         }
 
         const nextStroke = Object.prototype.hasOwnProperty.call(patch, 'stroke') ? patch.stroke : prev.stroke;
@@ -296,9 +291,6 @@ function Edit({
             previousStyle: prev.iconStyle,
         });
         const updated = updateObjectAt(currentValue, index, attributes);
-        // #region agent log
-        fetch('http://127.0.0.1:7861/ingest/e51822a5-516d-4574-a743-ff8836d1dd47',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'22d134'},body:JSON.stringify({sessionId:'22d134',hypothesisId:'A',location:'inline-icon.js:commitStyle',message:'color commit',data:{patchColor:Object.prototype.hasOwnProperty.call(patch,'color')?patch.color:undefined,nextColor,stored:attributes.color,styleHasBg:String(attributes.iconStyle||'').includes('background-color'),wrote:Boolean(updated)},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         if (updated) {
             holdOpen();
             onChange(updated);
@@ -327,7 +319,7 @@ function Edit({
                 svg,
                 color: latestAttrs.color,
                 stroke: patch.stroke,
-                size: latestAttrs.size,
+                size: latestAttrs.size || attributes.size,
                 title: latestAttrs.title,
                 keepTypedColor: true,
                 previousStyle: latestAttrs.iconStyle,
@@ -359,9 +351,6 @@ function Edit({
                         if (stayOpen(event)) {
                             return;
                         }
-                        // #region agent log
-                        fetch('http://127.0.0.1:7861/ingest/e51822a5-516d-4574-a743-ff8836d1dd47',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'22d134'},body:JSON.stringify({sessionId:'22d134',hypothesisId:'B',location:'inline-icon.js:onClose',message:'popover onClose',data:{type:event&&event.type,key:event&&event.key,related:event&&event.relatedTarget&&event.relatedTarget.tagName},timestamp:Date.now()})}).catch(()=>{});
-                        // #endregion
                         setPinned(false);
                     }}
                     onFocusOutside={(event) => {
