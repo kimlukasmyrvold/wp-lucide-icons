@@ -20,6 +20,7 @@ export default function IconStyleControls({
                 <ToggleControl
                     label={__('Match text size', 'wpicons')}
                     checked={Boolean(matchText)}
+                    __nextHasNoMarginBottom
                     onChange={(checked) => onChange?.({ matchText: checked })}
                 />
             ) : null}
@@ -29,6 +30,8 @@ export default function IconStyleControls({
                     value={pixelSize}
                     min={8}
                     max={256}
+                    showTooltip={false}
+                    __nextHasNoMarginBottom
                     onChange={(value) => {
                         if (typeof value !== 'number') {
                             return;
@@ -40,6 +43,7 @@ export default function IconStyleControls({
             <ToggleControl
                 label={__('Inherit text color', 'wpicons')}
                 checked={inherit}
+                __nextHasNoMarginBottom
                 onChange={(checked) => {
                     const nextColor = checked ? 'currentColor' : '#000000';
                     onChange?.({ color: nextColor });
@@ -49,6 +53,7 @@ export default function IconStyleControls({
                 <TextControl
                     label={__('Color', 'wpicons')}
                     value={color || ''}
+                    __nextHasNoMarginBottom
                     onChange={(value) => {
                         onChange?.({ color: value });
                     }}
@@ -61,6 +66,8 @@ export default function IconStyleControls({
                     min={0.5}
                     max={3}
                     step={0.25}
+                    showTooltip={false}
+                    __nextHasNoMarginBottom
                     onChange={(value) => {
                         if (typeof value !== 'number') {
                             return;
@@ -73,6 +80,7 @@ export default function IconStyleControls({
                 label={__('Accessible title', 'wpicons')}
                 help={__('Leave empty for decorative icons (hidden from assistive tech).', 'wpicons')}
                 value={title || ''}
+                __nextHasNoMarginBottom
                 onChange={(value) => onChange?.({ title: value })}
             />
         </div>

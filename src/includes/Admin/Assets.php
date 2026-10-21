@@ -115,8 +115,8 @@ class Assets
 
         $this->pickerEnqueued = true;
 
-        $this->enqueueWpiconsStyle('wpicons_tinymce_picker_style');
         wp_enqueue_style('wp-components');
+        $this->enqueueWpiconsStyle('wpicons_tinymce_picker_style', ['wp-components']);
 
         $deps = ['wp-element', 'wp-api-fetch', 'wp-components', 'wp-i18n'];
         $version = WP_ICONS__VERSION;
@@ -158,13 +158,16 @@ class Assets
         ];
     }
 
-    private function enqueueWpiconsStyle(string $handle): void
+    /**
+     * @param list<string> $deps
+     */
+    private function enqueueWpiconsStyle(string $handle, array $deps = []): void
     {
         $relative = 'css/wpicons.css';
         wp_enqueue_style(
             $handle,
             $this->assetUrl($relative),
-            [],
+            $deps,
             $this->assetVersion($relative)
         );
     }
