@@ -522,6 +522,24 @@
                 }
             }
 
+            .wpicons__swatches {
+                gap: calc(#{themes.base(spacing)} * 2);
+            }
+
+            .wpicons__swatch {
+                width: 1.25rem;
+                height: 1.25rem;
+                border-color: themes.getCSSVar(control-border);
+                background-clip: padding-box;
+
+                &:hover,
+                &:focus-visible,
+                &.is-selected {
+                    outline-color: themes.getCSSVar(primary);
+                    border-color: themes.getCSSVar(primary);
+                }
+            }
+
             .components-range-control .components-base-control__field {
                 display: flex;
                 flex-direction: column;

@@ -19,6 +19,10 @@ final class Svg
             return $color;
         }
 
+        if (preg_match('/^var\(\s*(--[a-zA-Z0-9_-]+)\s*\)$/', $color, $matches)) {
+            return 'var(' . $matches[1] . ')';
+        }
+
         if (\function_exists('sanitize_hex_color')) {
             $hex = sanitize_hex_color($color);
             if (\is_string($hex) && $hex !== '') {

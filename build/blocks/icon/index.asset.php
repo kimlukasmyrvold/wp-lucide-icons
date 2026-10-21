@@ -10,5 +10,5 @@
 		'wp-i18n',
 		'wp-rich-text'
 	),
-	'version' => 'f3ae571cd372c40970de'
+	'version' => '49e4ee4fca03bad8c508'
 );
