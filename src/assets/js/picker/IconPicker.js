@@ -15,7 +15,7 @@ function loadPage(library, search, page) {
         return Promise.resolve(pageCache.get(key));
     }
 
-    return fetchIcons({ library, search, page, perPage: 80 }).then((data) => {
+    return fetchIcons({ library, search, page, perPage: 200 }).then((data) => {
         pageCache.set(key, data);
         return data;
     });
@@ -31,6 +31,21 @@ function prefetchPage(library, search, page, totalPages) {
     loadPage(library, search, page).catch(() => {});
 }
 
+function scrollParent(node) {
+    let el = node.parentElement;
+    while (el) {
+        const { overflowY } = window.getComputedStyle(el);
+        if (
+            (overflowY === 'auto' || overflowY === 'scroll')
+            && el.scrollHeight > el.clientHeight + 1
+        ) {
+            return el;
+        }
+        el = el.parentElement;
+    }
+    return null;
+}
+
 export default function IconPicker({
     library,
     name,
@@ -41,8 +56,11 @@ export default function IconPicker({
 }) {
     const isDialog = variant === 'dialog';
     const gridRef = useRef(null);
+    const sentinelRef = useRef(null);
     const filterRef = useRef({ library, search: '' });
     const loadingRef = useRef(false);
+    const pageRef = useRef(1);
+    const totalPagesRef = useRef(1);
     const [libraries, setLibraries] = useState([]);
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
@@ -52,6 +70,9 @@ export default function IconPicker({
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    pageRef.current = page;
+    totalPagesRef.current = totalPages;
 
     useEffect(() => {
         let cancelled = false;
@@ -100,6 +121,7 @@ export default function IconPicker({
         filterRef.current = { library, search };
 
         if (filterChanged && page !== 1) {
+            loadingRef.current = true;
             setItems([]);
             setPage(1);
             return undefined;
@@ -126,11 +148,13 @@ export default function IconPicker({
 
         if (cached) {
             apply(cached);
+            loadingRef.current = false;
             setLoading(false);
             return undefined;
         }
 
         let cancelled = false;
+        loadingRef.current = true;
         setLoading(true);
         setError('');
         loadPage(library, search, page)
@@ -149,6 +173,7 @@ export default function IconPicker({
             })
             .finally(() => {
                 if (!cancelled) {
+                    loadingRef.current = false;
                     setLoading(false);
                 }
             });
@@ -159,24 +184,39 @@ export default function IconPicker({
     }, [isDialog, library, search, page]);
 
     useEffect(() => {
-        loadingRef.current = loading;
-    }, [loading]);
-
-    useEffect(() => {
         if (page === 1 && gridRef.current) {
             gridRef.current.scrollTop = 0;
         }
     }, [library, search, page]);
 
     useEffect(() => {
-        if (!isDialog || loading || page >= totalPages || !gridRef.current) {
-            return;
+        if (!isDialog || !sentinelRef.current) {
+            return undefined;
         }
 
-        const el = gridRef.current;
-        if (el.scrollHeight <= el.clientHeight + 16) {
-            setPage((value) => (value >= totalPages ? value : value + 1));
-        }
+        const node = sentinelRef.current;
+        const observer = new IntersectionObserver((entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) {
+                return;
+            }
+            if (loadingRef.current || pageRef.current >= totalPagesRef.current) {
+                return;
+            }
+            loadingRef.current = true;
+            setPage((value) => {
+                if (value >= totalPagesRef.current) {
+                    loadingRef.current = false;
+                    return value;
+                }
+                return value + 1;
+            });
+        }, {
+            root: scrollParent(node),
+            rootMargin: '200px',
+        });
+
+        observer.observe(node);
+        return () => observer.disconnect();
     }, [isDialog, items.length, loading, page, totalPages]);
 
     const currentLibrary = useMemo(
@@ -224,20 +264,6 @@ export default function IconPicker({
         </label>
     );
 
-    const onGridScroll = (event) => {
-        if (!isDialog || loadingRef.current || page >= totalPages) {
-            return;
-        }
-
-        const el = event.currentTarget;
-        if (el.scrollHeight - el.scrollTop - el.clientHeight > 160) {
-            return;
-        }
-
-        loadingRef.current = true;
-        setPage((value) => (value >= totalPages ? value : value + 1));
-    };
-
     return (
         <div className={`wpicons__picker${isDialog ? ' wpicons__picker--dialog' : ''}`}>
             <div className="wpicons__picker__toolbar">
@@ -255,7 +281,6 @@ export default function IconPicker({
                 ref={gridRef}
                 className={`wpicons__picker__grid${initialLoad ? ' is-loading' : ''}`}
                 aria-busy={loading}
-                onScroll={isDialog ? onGridScroll : undefined}
             >
                 {initialLoad ? (
                     <div className="wpicons__picker__loading">
@@ -281,9 +306,9 @@ export default function IconPicker({
                 {!initialLoad && items.length === 0 ? (
                     <p className="wpicons__picker__empty">{__('No icons match that search.', 'wpicons')}</p>
                 ) : null}
-                {isDialog && loading && page > 1 ? (
-                    <div className="wpicons__picker__more">
-                        <Spinner />
+                {isDialog ? (
+                    <div ref={sentinelRef} className="wpicons__picker__more">
+                        {loading && page > 1 ? <Spinner /> : null}
                     </div>
                 ) : null}
             </div>

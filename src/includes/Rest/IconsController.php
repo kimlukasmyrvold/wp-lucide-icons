@@ -53,7 +53,7 @@ class IconsController
                 ],
                 'per_page' => [
                     'type' => 'integer',
-                    'default' => 80,
+                    'default' => 200,
                 ],
             ],
         ]);
@@ -135,7 +135,7 @@ class IconsController
 
         $search = strtolower(trim((string) $request->get_param('search')));
         $page = max(1, (int) $request->get_param('page'));
-        $perPage = min(80, max(1, (int) $request->get_param('per_page')));
+        $perPage = min(200, max(1, (int) $request->get_param('per_page')));
 
         $cacheKey = '';
         if ($search === '') {

@@ -4,7 +4,7 @@ export async function fetchLibraries() {
     return apiFetch({ path: '/wpicons/v1/libraries' });
 }
 
-export async function fetchIcons({ library, search = '', page = 1, perPage = 80 }) {
+export async function fetchIcons({ library, search = '', page = 1, perPage = 200 }) {
     const params = new URLSearchParams({
         library,
         search,
