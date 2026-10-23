@@ -85,7 +85,6 @@ function PickerApp({
             onLibraryChange={setLibrary}
             onSelect={handleSelect}
             onClose={closePicker}
-            className="wpicons__picker-modal--tinymce"
         />
     );
 }

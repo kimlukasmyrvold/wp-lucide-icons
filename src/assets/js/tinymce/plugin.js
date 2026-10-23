@@ -24,10 +24,25 @@
         return ' ' + name + '="' + escapeAttr(value) + '"';
     }
 
+    function previewColor(color) {
+        var value = String(color || '').trim();
+        if (!value || value.toLowerCase() === 'currentcolor') {
+            return '';
+        }
+
+        var cssVar = value.match(/^var\(\s*(--[a-zA-Z0-9_-]+)\s*\)$/);
+        if (cssVar) {
+            return 'var(' + cssVar[1] + ')';
+        }
+
+        return value.replace(/[;"\\]/g, '');
+    }
+
     function previewStyle(src, color, size) {
         var style = '--wpicons-src:url(&quot;' + src + '&quot;)';
-        if (color && color.toLowerCase() !== 'currentcolor') {
-            style += ';background-color:' + String(color).replace(/[;"\\]/g, '');
+        var resolved = previewColor(color);
+        if (resolved) {
+            style += ';background-color:' + resolved;
         }
         if (size && /^\d+$/.test(String(size))) {
             style += ';width:' + size + 'px;height:' + size + 'px';
