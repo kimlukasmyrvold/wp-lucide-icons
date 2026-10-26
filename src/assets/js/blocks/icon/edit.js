@@ -6,8 +6,7 @@ import {
 } from '@wordpress/block-editor';
 import { Button, PanelBody } from '@wordpress/components';
 import IconPickerModal from '../../inline/IconPickerModal';
-import IconStyleControls from '../../picker/IconStyleControls';
-import { fetchIcon, fetchLibraries } from '../../picker/api';
+import { fetchIcon } from '../../picker/api';
 
 const defaults = window.WPIconsAdmin?.defaults || {
     library: 'lucide',
@@ -20,28 +19,10 @@ export default function Edit({ attributes, setAttributes }) {
     const { library, name, size, color, strokeWidth, title } = attributes;
     const [pickerOpen, setPickerOpen] = useState(false);
     const [preview, setPreview] = useState('');
-    const [supportsStroke, setSupportsStroke] = useState(library === 'lucide');
 
     const blockProps = useBlockProps({
         className: 'wpicons wpicons_ wp-block-wpicons-icon__wrap',
     });
-
-    useEffect(() => {
-        let cancelled = false;
-        fetchLibraries()
-            .then((data) => {
-                if (cancelled) {
-                    return;
-                }
-                const current = (data.libraries || []).find((item) => item.id === library);
-                setSupportsStroke(Boolean(current?.supports?.includes('stroke')));
-            })
-            .catch(() => {});
-
-        return () => {
-            cancelled = true;
-        };
-    }, [library]);
 
     useEffect(() => {
         let cancelled = false;
@@ -79,35 +60,16 @@ export default function Edit({ attributes, setAttributes }) {
                     <Button variant="secondary" onClick={() => setPickerOpen(true)}>
                         {__('Choose icon', 'wpicons')}
                     </Button>
-                    <IconStyleControls
-                        size={size || defaults.size}
-                        color={color ?? defaults.color}
-                        stroke={strokeWidth ?? defaults.stroke}
-                        title={title || ''}
-                        supportsStroke={supportsStroke}
-                        onChange={(patch) => {
-                            const next = {};
-                            if (Object.prototype.hasOwnProperty.call(patch, 'size') && patch.size !== '') {
-                                next.size = patch.size;
-                            }
-                            if (Object.prototype.hasOwnProperty.call(patch, 'color')) {
-                                next.color = patch.color;
-                            }
-                            if (Object.prototype.hasOwnProperty.call(patch, 'stroke')) {
-                                next.strokeWidth = patch.stroke;
-                            }
-                            if (Object.prototype.hasOwnProperty.call(patch, 'title')) {
-                                next.title = patch.title;
-                            }
-                            if (Object.keys(next).length) {
-                                setAttributes(next);
-                            }
-                        }}
-                    />
                     </div>
                 </PanelBody>
             </InspectorControls>
-            <div {...blockProps}>
+            <div
+                {...blockProps}
+                onClick={(event) => {
+                    blockProps.onClick?.(event);
+                    setPickerOpen(true);
+                }}
+            >
                 {preview ? (
                     <span dangerouslySetInnerHTML={{ __html: preview }} />
                 ) : (

@@ -6,7 +6,7 @@ The plugin is **WP Icons**. The repository and plugin folder are `wp-lucide-icon
 
 - Requires WordPress 6.6+ and PHP 8.1+
 - License: [GPLv2 or later](https://www.gnu.org/licenses/gpl-2.0.html)
-- Site: [wp-icons.com](https://wp-icons.com/)
+- Site: [GitHub](https://github.com/kimlukasmyrvold/wp-lucide-icons)
 - Issues: [GitHub](https://github.com/kimlukasmyrvold/wp-lucide-icons/issues)
 
 ## Features
