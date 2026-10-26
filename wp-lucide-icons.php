@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name:         WP Icons
- * Plugin URI:          https://wp-icons.com/
+ * Plugin URI:          https://github.com/kimlukasmyrvold/wp-lucide-icons
  * Description:         Adds icon elements to place on pages, uses icons from Lucide Icons, Material Icons and other various icon libraries. Integrates with some WordPress themes like Flatsome.
  * Version:             2.0.0
  * Requires at least:   6.6
@@ -11,7 +11,7 @@
  * Author URI:          https://www.kimlukas.dev/?utm_source=wordpress&utm_medium=wp-icons&utm_campaign=author_uri
  * License:             GPLv2 or later
  * License URI:         https://www.gnu.org/licenses/gpl-2.0.html
- * Update URI:          https://wp-icons.com/
+ * Update URI:          https://github.com/kimlukasmyrvold/wp-lucide-icons
  * Text Domain:         wpicons
  * Domain Path:         /src/languages
  */
@@ -45,7 +45,7 @@ function wp_icons_incompatible_message()
 {
     global $wp_version;
 
-    $wp = \isset($wp_version) ? $wp_version : 'unknown';
+    $wp = isset($wp_version) ? $wp_version : 'unknown';
 
     return sprintf(
         'WP Icons requires PHP %1$s or higher and WordPress %2$s or higher. You are running PHP %3$s and WordPress %4$s.',

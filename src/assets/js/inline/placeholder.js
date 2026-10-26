@@ -45,6 +45,10 @@ export function safeColor(color) {
     if (/^[a-z]{3,20}$/i.test(value)) {
         return value.toLowerCase();
     }
+    const cssVar = value.match(/^var\(\s*(--[a-zA-Z0-9_-]+)\s*\)$/);
+    if (cssVar) {
+        return `var(${cssVar[1]})`;
+    }
     return 'currentColor';
 }
 

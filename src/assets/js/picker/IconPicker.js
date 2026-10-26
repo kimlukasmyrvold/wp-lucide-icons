@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import { Spinner } from '@wordpress/components';
 import { fetchIcons, fetchLibraries } from './api';
 
@@ -15,7 +15,7 @@ function loadPage(library, search, page) {
         return Promise.resolve(pageCache.get(key));
     }
 
-    return fetchIcons({ library, search, page, perPage: 80 }).then((data) => {
+    return fetchIcons({ library, search, page, perPage: 200 }).then((data) => {
         pageCache.set(key, data);
         return data;
     });
@@ -31,13 +31,36 @@ function prefetchPage(library, search, page, totalPages) {
     loadPage(library, search, page).catch(() => {});
 }
 
+function scrollParent(node) {
+    let el = node.parentElement;
+    while (el) {
+        const { overflowY } = window.getComputedStyle(el);
+        if (
+            (overflowY === 'auto' || overflowY === 'scroll')
+            && el.scrollHeight > el.clientHeight + 1
+        ) {
+            return el;
+        }
+        el = el.parentElement;
+    }
+    return null;
+}
+
 export default function IconPicker({
     library,
     name,
     onLibraryChange,
     onSelect,
     allowedLibraries,
+    variant = 'default',
 }) {
+    const isDialog = variant === 'dialog';
+    const gridRef = useRef(null);
+    const sentinelRef = useRef(null);
+    const filterRef = useRef({ library, search: '' });
+    const loadingRef = useRef(false);
+    const pageRef = useRef(1);
+    const totalPagesRef = useRef(1);
     const [libraries, setLibraries] = useState([]);
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
@@ -47,6 +70,9 @@ export default function IconPicker({
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    pageRef.current = page;
+    totalPagesRef.current = totalPages;
 
     useEffect(() => {
         let cancelled = false;
@@ -91,38 +117,63 @@ export default function IconPicker({
             return undefined;
         }
 
+        const filterChanged = filterRef.current.library !== library || filterRef.current.search !== search;
+        filterRef.current = { library, search };
+
+        if (filterChanged && page !== 1) {
+            loadingRef.current = true;
+            setItems([]);
+            setPage(1);
+            return undefined;
+        }
+
+        const append = isDialog && !filterChanged && page > 1;
         const cached = pageCache.get(pageCacheKey(library, search, page));
-        if (cached) {
-            setItems(cached.items || []);
-            setTotal(cached.total || 0);
-            setTotalPages(cached.totalPages || 1);
-            setLoading(false);
+
+        const apply = (data) => {
+            setTotal(data.total || 0);
+            setTotalPages(data.totalPages || 1);
             setError('');
-            prefetchPage(library, search, page + 1, cached.totalPages || 1);
+            const next = data.items || [];
+            if (append) {
+                setItems((current) => {
+                    const seen = new Set(current.map((item) => item.name));
+                    return [...current, ...next.filter((item) => !seen.has(item.name))];
+                });
+            } else {
+                setItems(next);
+            }
+            prefetchPage(library, search, page + 1, data.totalPages || 1);
+        };
+
+        if (cached) {
+            apply(cached);
+            loadingRef.current = false;
+            setLoading(false);
             return undefined;
         }
 
         let cancelled = false;
+        loadingRef.current = true;
         setLoading(true);
         setError('');
         loadPage(library, search, page)
             .then((data) => {
-                if (cancelled) {
-                    return;
+                if (!cancelled) {
+                    apply(data);
                 }
-                setItems(data.items || []);
-                setTotal(data.total || 0);
-                setTotalPages(data.totalPages || 1);
-                prefetchPage(library, search, page + 1, data.totalPages || 1);
             })
             .catch(() => {
                 if (!cancelled) {
                     setError(__('Could not load icons.', 'wpicons'));
-                    setItems([]);
+                    if (!append) {
+                        setItems([]);
+                    }
                 }
             })
             .finally(() => {
                 if (!cancelled) {
+                    loadingRef.current = false;
                     setLoading(false);
                 }
             });
@@ -130,52 +181,108 @@ export default function IconPicker({
         return () => {
             cancelled = true;
         };
+    }, [isDialog, library, search, page]);
+
+    useEffect(() => {
+        if (page === 1 && gridRef.current) {
+            gridRef.current.scrollTop = 0;
+        }
     }, [library, search, page]);
+
+    useEffect(() => {
+        if (!isDialog || !sentinelRef.current) {
+            return undefined;
+        }
+
+        const node = sentinelRef.current;
+        const observer = new IntersectionObserver((entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) {
+                return;
+            }
+            if (loadingRef.current || pageRef.current >= totalPagesRef.current) {
+                return;
+            }
+            loadingRef.current = true;
+            setPage((value) => {
+                if (value >= totalPagesRef.current) {
+                    loadingRef.current = false;
+                    return value;
+                }
+                return value + 1;
+            });
+        }, {
+            root: scrollParent(node),
+            rootMargin: '200px',
+        });
+
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, [isDialog, items.length, loading, page, totalPages]);
 
     const currentLibrary = useMemo(
         () => libraries.find((item) => item.id === library),
         [libraries, library],
     );
 
+    const initialLoad = loading && page === 1;
+    const searchPlaceholder = isDialog
+        ? __('Search for an icon, e.g. "arrow" or "home"', 'wpicons')
+        : __('Search icons', 'wpicons');
+
+    const tabs = (
+        <div className="wpicons__picker__tabs" role="tablist">
+            {libraries.map((item) => (
+                <button
+                    key={item.id}
+                    type="button"
+                    className={`wpicons__picker__tab${item.id === library ? ' is-active' : ''}`}
+                    disabled={initialLoad}
+                    onClick={() => {
+                        onLibraryChange?.(item.id);
+                        setPage(1);
+                    }}
+                >
+                    {item.label}
+                    {isDialog ? null : (
+                        <span className="wpicons__picker__count">{item.count}</span>
+                    )}
+                </button>
+            ))}
+        </div>
+    );
+
+    const searchField = (
+        <label className="wpicons__picker__search">
+            <span className="screen-reader-text">{__('Search icons', 'wpicons')}</span>
+            <input
+                type="search"
+                value={searchInput}
+                placeholder={searchPlaceholder}
+                autoFocus={isDialog}
+                onChange={(event) => setSearchInput(event.target.value)}
+            />
+        </label>
+    );
+
     return (
-        <div className="wpicons__picker">
+        <div className={`wpicons__picker${isDialog ? ' wpicons__picker--dialog' : ''}`}>
             <div className="wpicons__picker__toolbar">
-                <div className="wpicons__picker__tabs" role="tablist">
-                    {libraries.map((item) => (
-                        <button
-                            key={item.id}
-                            type="button"
-                            className={`wpicons__picker__tab${item.id === library ? ' is-active' : ''}`}
-                            disabled={loading}
-                            onClick={() => {
-                                onLibraryChange?.(item.id);
-                                setPage(1);
-                            }}
-                        >
-                            {item.label}
-                            <span className="wpicons__picker__count">{item.count}</span>
-                        </button>
-                    ))}
-                </div>
-                <label className="wpicons__picker__search">
-                    <span className="screen-reader-text">{__('Search icons', 'wpicons')}</span>
-                    <input
-                        type="search"
-                        value={searchInput}
-                        placeholder={__('Search icons', 'wpicons')}
-                        onChange={(event) => setSearchInput(event.target.value)}
-                    />
-                </label>
+                {isDialog ? searchField : tabs}
+                {isDialog ? tabs : searchField}
             </div>
-            {currentLibrary ? (
+            {!isDialog && currentLibrary ? (
                 <p className="wpicons__picker__meta">
                     {__('Version', 'wpicons')}: {currentLibrary.version}
                     {total ? ` · ${total}` : ''}
                 </p>
             ) : null}
             {error ? <p className="wpicons__picker__error">{error}</p> : null}
-            <div className={`wpicons__picker__grid${loading ? ' is-loading' : ''}`} aria-busy={loading}>
-                {loading ? (
+            <div
+                ref={gridRef}
+                className={`wpicons__picker__grid${initialLoad ? ' is-loading' : ''}`}
+                aria-busy={loading}
+            >
+                {initialLoad ? (
                     <div className="wpicons__picker__loading">
                         <Spinner />
                         <span>{__('Loading icons', 'wpicons')}</span>
@@ -196,11 +303,26 @@ export default function IconPicker({
                         <span className="wpicons__picker__name">{item.name}</span>
                     </button>
                 ))}
-                {!loading && items.length === 0 ? (
+                {!initialLoad && items.length === 0 ? (
                     <p className="wpicons__picker__empty">{__('No icons match that search.', 'wpicons')}</p>
                 ) : null}
+                {isDialog ? (
+                    <div ref={sentinelRef} className="wpicons__picker__more">
+                        {loading && page > 1 ? <Spinner /> : null}
+                    </div>
+                ) : null}
             </div>
-            {totalPages > 1 ? (
+            {isDialog && total ? (
+                <p className="wpicons__picker__status">
+                    {sprintf(
+                        /* translators: 1: number of icons currently listed, 2: total matching icons */
+                        __('%1$d of %2$d icons', 'wpicons'),
+                        items.length,
+                        total,
+                    )}
+                </p>
+            ) : null}
+            {!isDialog && totalPages > 1 ? (
                 <div className="wpicons__picker__pager">
                     <button type="button" disabled={loading || page <= 1} onClick={() => setPage((value) => value - 1)}>
                         {__('Previous', 'wpicons')}

@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { dispatch, select, subscribe } from '@wordpress/data';
-import { insertObject, registerFormatType, useAnchor } from '@wordpress/rich-text';
+import { insertObject, registerFormatType } from '@wordpress/rich-text';
 import { RichTextToolbarButton } from '@wordpress/block-editor';
-import { Popover } from '@wordpress/components';
 import IconPickerModal from '../inline/IconPickerModal';
-import IconStyleControls from '../picker/IconStyleControls';
-import { fetchLibraries } from '../picker/api';
 import {
     migrateInlineIconHtml,
     placeholderAttributes,
@@ -15,11 +12,6 @@ import {
 } from '../inline/placeholder';
 
 export const FORMAT_NAME = 'wpicons/inline-icon';
-
-const ANCHOR_SETTINGS = {
-    tagName: 'img',
-    className: 'wpicons-inline',
-};
 
 function draftFromAttributes(attrs) {
     const defaults = pluginDefaults();
@@ -63,158 +55,20 @@ function Edit({
     const defaults = pluginDefaults();
     const valueRef = useRef(value);
     const editIndexRef = useRef(null);
-    const popoverRef = useRef(null);
-    const strokeTimer = useRef(0);
-    const strokeRequest = useRef(0);
-    const holdOpenRef = useRef(false);
-    const holdGenerationRef = useRef(0);
-    const pointerInsideRef = useRef(false);
+    const openedForRef = useRef('');
+    const awaitingSavedRef = useRef(false);
+    const savedIdentityRef = useRef('');
     valueRef.current = value;
 
-    const holdOpen = () => {
-        const generation = holdGenerationRef.current + 1;
-        holdGenerationRef.current = generation;
-        holdOpenRef.current = true;
-        window.setTimeout(() => {
-            window.setTimeout(() => {
-                if (holdGenerationRef.current === generation) {
-                    holdOpenRef.current = false;
-                }
-            }, 0);
-        }, 0);
-    };
-
-    const stayOpen = (event) => {
-        if (holdOpenRef.current || pointerInsideRef.current) {
-            return true;
-        }
-        const content = popoverRef.current;
-        if (content && content.contains(document.activeElement)) {
-            return true;
-        }
-        if (event && event.key !== 'Escape' && event.relatedTarget == null && event.type !== 'pointerdown' && event.type !== 'mousedown') {
-            return true;
-        }
-        return false;
-    };
-
-    const liveAnchor = useAnchor({
-        editableContentElement: contentRef?.current,
-        settings: ANCHOR_SETTINGS,
-    });
-    const [anchorElement, setAnchorElement] = useState(null);
     const [pickerOpen, setPickerOpen] = useState(false);
-    const [pinned, setPinned] = useState(false);
+    const [applyEpoch, setApplyEpoch] = useState(0);
     const [library, setLibrary] = useState(defaults.library);
     const [pickerName, setPickerName] = useState('');
     const [pickerOptions, setPickerOptions] = useState(() => draftFromAttributes(null));
-    const [draft, setDraft] = useState(null);
-    const [supportsStroke, setSupportsStroke] = useState(true);
-
-    useEffect(() => {
-        if (liveAnchor) {
-            setAnchorElement(liveAnchor);
-        }
-    }, [liveAnchor]);
 
     const selectedKey = isObjectActive
         ? `${value.start}:${activeObjectAttributes?.library || ''}:${activeObjectAttributes?.iconName || ''}`
         : '';
-
-    useEffect(() => {
-        if (!selectedKey) {
-            return undefined;
-        }
-        editIndexRef.current = value.start;
-        const nextDraft = draftFromAttributes(activeObjectAttributes);
-        setDraft(nextDraft);
-        setPinned(true);
-        return undefined;
-    }, [selectedKey]);
-
-    useEffect(() => {
-        if (isObjectActive) {
-            editIndexRef.current = value.start;
-            setPinned(true);
-            return undefined;
-        }
-
-        const timer = window.setTimeout(() => {
-            if (stayOpen()) {
-                return;
-            }
-            setPinned(false);
-        }, 0);
-
-        return () => window.clearTimeout(timer);
-    }, [isObjectActive, value.start]);
-
-    useEffect(() => {
-        if (!pinned) {
-            return undefined;
-        }
-        const id = activeObjectAttributes?.library || defaults.library;
-        let cancelled = false;
-        fetchLibraries()
-            .then((data) => {
-                if (cancelled) {
-                    return;
-                }
-                const current = (data.libraries || []).find((item) => item.id === id);
-                setSupportsStroke(Boolean(current?.supports?.includes('stroke')));
-            })
-            .catch(() => {});
-        return () => {
-            cancelled = true;
-        };
-    }, [pinned, activeObjectAttributes?.library]);
-
-    useEffect(() => {
-        if (!pinned) {
-            return undefined;
-        }
-
-        const documents = [document];
-        const editableDocument = contentRef?.current?.ownerDocument;
-        if (editableDocument && editableDocument !== document) {
-            documents.push(editableDocument);
-        }
-
-        const onPointerDown = (event) => {
-            const content = popoverRef.current;
-            if (content && content.contains(event.target)) {
-                return;
-            }
-            if (anchorElement && (event.target === anchorElement || anchorElement.contains(event.target))) {
-                return;
-            }
-            setPinned(false);
-        };
-        const onKeyDown = (event) => {
-            if (event.key === 'Escape') {
-                setPinned(false);
-            }
-        };
-        const onPointerEnd = () => {
-            pointerInsideRef.current = false;
-        };
-
-        documents.forEach((doc) => {
-            doc.addEventListener('pointerdown', onPointerDown, true);
-            doc.addEventListener('keydown', onKeyDown);
-        });
-        document.addEventListener('pointerup', onPointerEnd);
-        document.addEventListener('pointercancel', onPointerEnd);
-
-        return () => {
-            documents.forEach((doc) => {
-                doc.removeEventListener('pointerdown', onPointerDown, true);
-                doc.removeEventListener('keydown', onKeyDown);
-            });
-            document.removeEventListener('pointerup', onPointerEnd);
-            document.removeEventListener('pointercancel', onPointerEnd);
-        };
-    }, [pinned, anchorElement, contentRef]);
 
     const openPicker = () => {
         const attrs = isObjectActive ? (activeObjectAttributes || {}) : {};
@@ -226,6 +80,57 @@ function Edit({
         setPickerOpen(true);
     };
 
+    useEffect(() => {
+        const identity = isObjectActive
+            ? `${activeObjectAttributes?.library || ''}:${activeObjectAttributes?.iconName || ''}`
+            : '';
+
+        if (awaitingSavedRef.current) {
+            if (selectedKey && identity === savedIdentityRef.current) {
+                awaitingSavedRef.current = false;
+                openedForRef.current = selectedKey;
+            }
+            return;
+        }
+
+        if (!selectedKey) {
+            openedForRef.current = '';
+            return;
+        }
+
+        editIndexRef.current = value.start;
+        if (openedForRef.current === selectedKey) {
+            return;
+        }
+
+        openedForRef.current = selectedKey;
+        const attrs = activeObjectAttributes || {};
+        setLibrary(attrs.library || defaults.library);
+        setPickerName(attrs.iconName || '');
+        setPickerOptions(draftFromAttributes(attrs));
+        setPickerOpen(true);
+    }, [selectedKey, applyEpoch]);
+
+    useEffect(() => {
+        const root = contentRef?.current;
+        if (!root || typeof root.addEventListener !== 'function') {
+            return undefined;
+        }
+
+        const onClick = (event) => {
+            const target = event.target;
+            if (!target || typeof target.closest !== 'function' || !target.closest('img.wpicons-inline')) {
+                return;
+            }
+            awaitingSavedRef.current = false;
+            if (isObjectActive) {
+                openPicker();
+            }
+        };
+        root.addEventListener('click', onClick, true);
+        return () => root.removeEventListener('click', onClick, true);
+    }, [contentRef, isObjectActive, value.start, activeObjectAttributes]);
+
     const applyIcon = async (icon) => {
         const svg = await resolveMaskSvg({
             library: icon.library,
@@ -234,6 +139,7 @@ function Edit({
             stroke: icon.stroke,
         });
         if (!svg) {
+            awaitingSavedRef.current = false;
             setPickerOpen(false);
             return;
         }
@@ -250,86 +156,15 @@ function Edit({
         const index = editIndexRef.current;
         const current = valueRef.current;
         const replaced = updateObjectAt(current, index, attributes);
+        savedIdentityRef.current = `${icon.library}:${icon.name}`;
+        awaitingSavedRef.current = true;
         onChange(replaced || insertObject(current, {
             type: FORMAT_NAME,
             attributes,
         }));
+        setApplyEpoch((epoch) => epoch + 1);
         onFocus?.();
         setPickerOpen(false);
-        setPinned(false);
-    };
-
-    const commitStyle = (patch, nextDraft = draft) => {
-        const index = editIndexRef.current;
-        const currentValue = valueRef.current;
-        const current = currentValue?.replacements?.[index];
-        if (!current || current.type !== FORMAT_NAME) {
-            return;
-        }
-
-        const prev = current.attributes || {};
-        let nextSize = prev.size;
-        if (Object.prototype.hasOwnProperty.call(patch, 'matchText')) {
-            nextSize = patch.matchText ? '' : (nextDraft?.size || defaults.size || 24);
-        } else if (Object.prototype.hasOwnProperty.call(patch, 'size')) {
-            nextSize = patch.size;
-        } else if (nextDraft && nextDraft.matchText === false && nextDraft.size) {
-            nextSize = nextDraft.size;
-        }
-
-        const nextStroke = Object.prototype.hasOwnProperty.call(patch, 'stroke') ? patch.stroke : prev.stroke;
-        const nextColor = Object.prototype.hasOwnProperty.call(patch, 'color') ? patch.color : prev.color;
-        const attributes = placeholderAttributes({
-            library: prev.library,
-            name: prev.iconName,
-            url: prev.url,
-            color: nextColor,
-            stroke: nextStroke,
-            size: nextSize,
-            title: Object.prototype.hasOwnProperty.call(patch, 'title') ? patch.title : prev.title,
-            keepTypedColor: true,
-            previousStyle: prev.iconStyle,
-        });
-        const updated = updateObjectAt(currentValue, index, attributes);
-        if (updated) {
-            holdOpen();
-            onChange(updated);
-        }
-
-        if (!Object.prototype.hasOwnProperty.call(patch, 'stroke') || String(patch.stroke) === String(prev.stroke)) {
-            return;
-        }
-
-        const requestId = ++strokeRequest.current;
-        window.clearTimeout(strokeTimer.current);
-        strokeTimer.current = window.setTimeout(async () => {
-            const svg = await resolveMaskSvg({
-                library: prev.library,
-                name: prev.iconName,
-                stroke: patch.stroke,
-            });
-            if (!svg || requestId !== strokeRequest.current) {
-                return;
-            }
-            const latest = valueRef.current;
-            const latestAttrs = latest?.replacements?.[index]?.attributes || attributes;
-            const withSvg = placeholderAttributes({
-                library: prev.library,
-                name: prev.iconName,
-                svg,
-                color: latestAttrs.color,
-                stroke: patch.stroke,
-                size: latestAttrs.size || attributes.size,
-                title: latestAttrs.title,
-                keepTypedColor: true,
-                previousStyle: latestAttrs.iconStyle,
-            });
-            const nextValue = updateObjectAt(latest, index, withSvg);
-            if (nextValue) {
-                holdOpen();
-                onChange(nextValue);
-            }
-        }, 200);
     };
 
     return (
@@ -340,52 +175,6 @@ function Edit({
                 onClick={openPicker}
                 isActive={isObjectActive}
             />
-            {pinned && anchorElement && draft && !pickerOpen ? (
-                <Popover
-                    anchor={anchorElement}
-                    placement="bottom-start"
-                    focusOnMount={false}
-                    className="wpicons wpicons_ wpicons__inline-popover"
-                    theme="light"
-                    onClose={(event) => {
-                        if (stayOpen(event)) {
-                            return;
-                        }
-                        setPinned(false);
-                    }}
-                    onFocusOutside={(event) => {
-                        if (!event?.relatedTarget || stayOpen(event)) {
-                            event?.preventDefault?.();
-                            return;
-                        }
-                        setPinned(false);
-                    }}
-                >
-                    <div
-                        ref={popoverRef}
-                        className="wpicons"
-                        theme="light"
-                        onPointerDown={() => {
-                            pointerInsideRef.current = true;
-                        }}
-                    >
-                        <IconStyleControls
-                            size={draft.size}
-                            color={draft.color}
-                            stroke={draft.stroke}
-                            title={draft.title}
-                            supportsStroke={supportsStroke}
-                            allowMatchText
-                            matchText={draft.matchText}
-                            onChange={(patch) => {
-                                const nextDraft = { ...(draft || {}), ...patch };
-                                setDraft(nextDraft);
-                                commitStyle(patch, nextDraft);
-                            }}
-                        />
-                    </div>
-                </Popover>
-            ) : null}
             {pickerOpen ? (
                 <IconPickerModal
                     library={library}
