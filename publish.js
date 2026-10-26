@@ -1,48 +1,63 @@
-const fs = require('fs-extra');
-const path = require('path');
-const archiver = require('archiver');
+/**
+ * Version: 1.0.0
+ */
 
-fs.readFile(path.join(__dirname, 'wp-lucide-icons.php'), 'utf8', (err, data) => {
+const fs = require("fs-extra");
+const path = require("path");
+const archiver = require("archiver");
+
+fs.readFile(path.join(__dirname, process.argv[2]), "utf8", (err, data) => {
     if (err) {
-        console.error('Error reading plugin file:', err)
-        return
+        console.error("Error reading plugin file:", err);
+        return;
     }
 
-    const versionMatch = data.match(/Version:\s*(\d+\.\d+\.\d+)/)
-    if (versionMatch) {
+    const filename = process.argv[2].split(".")[0];
+    const versionMatch = data.match(
+        /Version:\s*(\d+\.\d+\.\d+(?:-[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*)?)/,
+    );
+    if (versionMatch && filename) {
         const version = versionMatch[1];
+        const folder = `releases/v${version}`;
+        const filepath = `${folder}/${filename}.zip`;
 
-        fs.ensureDirSync(path.join(__dirname, `releases/v${version}`));
-        const output = fs.createWriteStream(path.join(__dirname, `releases/v${version}/wp-lucide-icons.zip`));
-        const archive = archiver('zip', {
-            zlib: { level: 9 }
+        fs.ensureDirSync(path.join(__dirname, folder));
+        const output = fs.createWriteStream(path.join(__dirname, filepath));
+        const archive = archiver("zip", {
+            zlib: { level: 9 },
         });
 
-        output.on('close', function () {
-            console.log(archive.pointer() + ' total bytes');
-            console.log('Zip file has been finalized and the output file descriptor has closed.');
+        output.on("close", function () {
+            console.log(archive.pointer() + " total bytes");
+            console.log(`Zip file done, outputted to: ${filepath}`);
         });
 
-        archive.on('error', function (err) {
+        archive.on("error", function (err) {
             throw err;
         });
 
         archive.pipe(output);
 
-        const foldersToZip = ['css', 'js', 'html'];
-        foldersToZip.forEach(folder => {
-            archive.directory(folder + '/', folder);
+        const foldersToZip = [
+            "src/assets/css",
+            "src/assets/js",
+            "src/includes",
+            "src/languages",
+            "src/templates",
+            "build",
+            "vendor",
+        ];
+        foldersToZip.forEach((folder) => {
+            archive.directory(folder + "/", folder);
         });
 
-
-        const filesToZip = ['wp-lucide-icons.php', 'README.md'];
-        filesToZip.forEach(file => {
-            archive.file(file, { name: path.basename(file) });
+        const filesToZip = [process.argv[2], "bootstrap.php", "uninstall.php"];
+        filesToZip.forEach((file) => {
+            archive.file(file, { name: file });
         });
 
         archive.finalize();
-    }
-    else {
-        console.error('Version not found in plugin file.')
+    } else {
+        console.error("Version or filename not found.");
     }
 });

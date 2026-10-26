@@ -1,0 +1,46 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "wpicons/icon",
+    "title": "Icon",
+    "category": "wpicons",
+    "icon": "star-filled",
+    "description": "Insert an icon from Lucide Icons or Material Symbols.",
+    "keywords": ["icon", "lucide", "material", "svg"],
+    "textdomain": "wpicons",
+    "attributes": {
+        "library": {
+            "type": "string",
+            "default": "lucide"
+        },
+        "name": {
+            "type": "string",
+            "default": "circle"
+        },
+        "size": {
+            "type": "number",
+            "default": 24
+        },
+        "color": {
+            "type": "string",
+            "default": "currentColor"
+        },
+        "strokeWidth": {
+            "type": "number",
+            "default": 2
+        },
+        "title": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "supports": {
+        "align": true,
+        "className": true,
+        "html": false,
+        "spacing": {
+            "margin": true
+        }
+    },
+    "editorScript": "file:./index.js"
+}

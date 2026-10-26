@@ -1,0 +1,6 @@
+@use "config";
+
+@function createProperty($property, $includePrefix: true) {
+    $prefix: if($includePrefix, config.prefix(), "");
+    @return --#{$prefix}#{$property};
+}
