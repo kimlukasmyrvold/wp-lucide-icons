@@ -25,6 +25,11 @@ export default function Edit({ attributes, setAttributes }) {
     });
 
     useEffect(() => {
+        if (!name) {
+            setPreview('');
+            return undefined;
+        }
+
         let cancelled = false;
         fetchIcon({
             library,

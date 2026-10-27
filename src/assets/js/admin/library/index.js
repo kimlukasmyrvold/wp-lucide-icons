@@ -44,7 +44,7 @@ function paintIcon(svg, { size, color, stroke, supportsStroke }) {
 
 function LibraryApp() {
     const [library, setLibrary] = useState(pluginDefaults.library);
-    const [name, setName] = useState('circle');
+    const [name, setName] = useState('');
     const [size, setSize] = useState(pluginDefaults.size);
     const [color, setColor] = useState(pluginDefaults.color);
     const [stroke, setStroke] = useState(pluginDefaults.stroke);
@@ -83,7 +83,7 @@ function LibraryApp() {
     }, [library]);
 
     useEffect(() => {
-        if (sourceSvg) {
+        if (!name || sourceSvg) {
             return undefined;
         }
 

@@ -17,7 +17,7 @@ final class IconOptions
     public string|bool $hiddenOrTitle;
 
     public function __construct(
-        string $name = 'circle',
+        string $name = '',
         int $size = 24,
         ?int $height = null,
         string $color = 'currentColor',
@@ -51,7 +51,7 @@ final class IconOptions
         $stroke = $data['strokeWidth'] ?? $data['stroke'] ?? $data['width'] ?? 2;
 
         return new self(
-            name: isset($data['name']) ? (string) $data['name'] : 'circle',
+            name: isset($data['name']) ? (string) $data['name'] : '',
             size: $size > 0 ? $size : 24,
             height: $height !== null && $height > 0 ? $height : null,
             color: isset($data['color']) ? (string) $data['color'] : 'currentColor',

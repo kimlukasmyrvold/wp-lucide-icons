@@ -26,7 +26,7 @@ class Shortcode
         $atts = shortcode_atts(
             [
                 'library' => $defaults['default_library'],
-                'name' => 'circle',
+                'name' => '',
                 'size' => (string) $defaults['default_size'],
                 'color' => $defaults['default_color'],
                 'stroke' => (string) $defaults['default_stroke'],
