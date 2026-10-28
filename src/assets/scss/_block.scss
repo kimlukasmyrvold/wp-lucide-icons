@@ -1,4 +1,7 @@
-.wp-block-wpicons-icon__wrap {
+@use "lib/config";
+@use "lib/functions";
+
+.wp-block-#{config.$prefix}-icon__wrap {
     display: inline-flex;
     align-items: center;
     vertical-align: middle;
@@ -11,26 +14,26 @@
     }
 }
 
-span.wpicons-inline {
+span.#{config.$prefix}-inline {
     display: inline-block;
     width: 1em;
     height: 1em;
     vertical-align: -0.15em;
     background-color: currentColor;
-    -webkit-mask: var(--wpicons-src) center / contain no-repeat;
-    mask: var(--wpicons-src) center / contain no-repeat;
+    -webkit-mask: var(#{functions.createProperty(src)}) center / contain no-repeat;
+    mask: var(#{functions.createProperty(src)}) center / contain no-repeat;
 }
 
-img.wpicons-inline,
-svg.wpicons-inline {
+img.#{config.$prefix}-inline,
+svg.#{config.$prefix}-inline {
     display: inline-block;
     width: 1em;
     height: 1em;
     vertical-align: -0.15em;
 }
 
-img.wpicons-inline[style*="--wpicons-src"] {
+img.#{config.$prefix}-inline[style*="#{functions.createProperty(src)}"] {
     background-color: currentColor;
-    -webkit-mask: var(--wpicons-src) center / contain no-repeat;
-    mask: var(--wpicons-src) center / contain no-repeat;
+    -webkit-mask: var(#{functions.createProperty(src)}) center / contain no-repeat;
+    mask: var(#{functions.createProperty(src)}) center / contain no-repeat;
 }

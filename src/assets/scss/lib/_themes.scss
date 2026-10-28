@@ -24,6 +24,7 @@ $themes: (
         control-border: oklch(0.45 0.02 271),
         input: oklch(0.98 0 247.84),
         ring: oklch(70.542% 0.14633 296.12),
+        sidebar: oklch(0.95 0.02 275.64),
     ),
     dark: (
         background: oklch(21.825% 0.02359 295.836),
@@ -42,8 +43,9 @@ $themes: (
         destructive: oklch(62.793% 0.25768 29.223),
         border: oklch(31.668% 0.03043 295.379),
         control-border: oklch(82.032% 0.00009 271.152),
-        input: oklch(29.313% 0.00003 271.152),
+        input: oklch(21.881% 0.02547 294.779),
         ring: oklch(87.762% 0.06474 290.831),
+        sidebar: oklch(25.856% 0.0265 297.597),
     ),
 );
 
@@ -124,6 +126,7 @@ $base: (
 
     @each $theme, $colors in $themes {
         @include themeWrap($theme) {
+            color-scheme: #{$theme};
             @include mixins.generateProperties($colors);
         }
     }

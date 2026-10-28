@@ -17,6 +17,7 @@ class InlineIcons
         add_filter('render_block', [$this, 'replaceInHtml']);
         add_filter('the_content', [$this, 'replaceInHtml'], 13);
         add_filter('acf_the_content', [$this, 'replaceInHtml'], 13);
+        add_filter('do_shortcode_tag', [$this, 'replaceInHtml']);
     }
 
     /**
@@ -140,6 +141,10 @@ class InlineIcons
             if ($context === 'edit') {
                 return false;
             }
+        }
+
+        if (\function_exists('ux_builder_is_active') && ux_builder_is_active()) {
+            return false;
         }
 
         return true;

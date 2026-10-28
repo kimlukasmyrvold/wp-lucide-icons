@@ -1,8 +1,7 @@
 @use "lib/config";
-@use "lib/mixins";
 @use "lib/themes";
 
-.wpicons__picker-overlay {
+.#{config.$prefix}__picker-overlay {
     position: fixed;
     inset: 0;
     z-index: 1000000;
@@ -11,29 +10,6 @@
     justify-content: center;
     padding: 2rem;
     background: rgb(8 6 18 / 0.72);
-}
-
-.wpicons.wpicons__picker-dialog,
-.wpicons.wpicons__picker-dialog[theme="dark"] {
-    @include mixins.generateProperties((
-        background: #1b1824,
-        foreground: #f0edf6,
-        primary: #a98bf0,
-        primary-foreground: #14101f,
-        secondary: #25212f,
-        secondary-foreground: #f0edf6,
-        accent: #2e2547,
-        accent-foreground: #f0edf6,
-        muted: #2c2c2c,
-        muted-foreground: #a29cb0,
-        card: #25212f,
-        card-foreground: #f0edf6,
-        sidebar: #25212f,
-        border: #332f40,
-        control-border: #332f40,
-        input: #1b1824,
-        ring: #a98bf0,
-    ));
 }
 
 .#{config.$prefix} {
@@ -335,7 +311,6 @@
                 }
 
                 &.is-selected {
-                    background: themes.getCSSVar(accent) !important;
                     border-color: themes.getCSSVar(primary) !important;
                 }
             }
@@ -361,14 +336,14 @@
         color: themes.getCSSVar(foreground);
         box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 0.45);
 
-        &.wpicons button.components-button {
+        &.#{config.$prefix} button.components-button {
             box-sizing: border-box;
             padding-block: 0.375rem;
             padding-inline: 0.875rem;
             line-height: 1.4;
         }
 
-        &.wpicons .components-form-toggle {
+        &.#{config.$prefix} .components-form-toggle {
             position: relative;
             display: inline-block;
             flex: none;
@@ -376,7 +351,7 @@
             height: 1.25rem;
         }
 
-        &.wpicons .components-form-toggle__input {
+        &.#{config.$prefix} .components-form-toggle__input {
             position: absolute;
             inset: 0;
             z-index: 1;
@@ -390,7 +365,7 @@
             cursor: pointer;
         }
 
-        &.wpicons .components-form-toggle__track {
+        &.#{config.$prefix} .components-form-toggle__track {
             display: block;
             box-sizing: border-box;
             width: 2.25rem;
@@ -400,12 +375,12 @@
             background: themes.getCSSVar(input);
         }
 
-        &.wpicons .components-form-toggle.is-checked .components-form-toggle__track {
+        &.#{config.$prefix} .components-form-toggle.is-checked .components-form-toggle__track {
             background: themes.getCSSVar(primary);
             border-color: themes.getCSSVar(primary);
         }
 
-        &.wpicons .components-form-toggle__thumb {
+        &.#{config.$prefix} .components-form-toggle__thumb {
             position: absolute;
             top: 0.1875rem;
             left: 0.1875rem;
@@ -417,7 +392,7 @@
             transition: transform 0.15s ease;
         }
 
-        &.wpicons .components-form-toggle.is-checked .components-form-toggle__thumb {
+        &.#{config.$prefix} .components-form-toggle.is-checked .components-form-toggle__thumb {
             background: themes.getCSSVar(primary-foreground);
             transform: translateX(1rem);
         }
@@ -517,12 +492,12 @@
                 margin-bottom: 0;
             }
 
-            .wpicons.wpicons__picker-dialog & .components-base-control__label,
-            .wpicons.wpicons__picker-dialog & .components-base-control__help {
+            .#{config.$prefix}.#{config.$prefix}__picker-dialog & .components-base-control__label,
+            .#{config.$prefix}.#{config.$prefix}__picker-dialog & .components-base-control__help {
                 color: themes.getCSSVar(muted-foreground);
             }
 
-            .wpicons.wpicons__picker-dialog & .components-base-control__help {
+            .#{config.$prefix}.#{config.$prefix}__picker-dialog & .components-base-control__help {
                 font-size: themes.base(text-xs);
                 line-height: themes.base(text-xs--line-height);
             }
@@ -587,11 +562,11 @@
                 }
             }
 
-            .wpicons__swatches {
+            .#{config.$prefix}__swatches {
                 gap: calc(#{themes.base(spacing)} * 2);
             }
 
-            .wpicons__swatch {
+            .#{config.$prefix}__swatch {
                 width: 1.25rem;
                 height: 1.25rem;
                 border-color: themes.getCSSVar(control-border);
@@ -735,7 +710,6 @@
             .components-range-control input[type="range"] {
                 width: 100%;
                 height: 1rem;
-                color-scheme: dark;
                 accent-color: themes.getCSSVar(primary);
             }
         }
@@ -800,7 +774,7 @@
 }
 
 @media (max-width: 52rem) {
-    .wpicons__picker-overlay {
+    .#{config.$prefix}__picker-overlay {
         padding: 1rem;
         align-items: stretch;
     }

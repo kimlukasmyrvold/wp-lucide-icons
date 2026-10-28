@@ -1,6 +1,7 @@
+@use "lib/config";
 @use "lib/themes";
 
-.wpicons_ {
+.#{config.$prefix}_ {
     --wp-admin-theme-color: #{themes.getCSSVar(primary)};
     --wp-admin-theme-color-darker-10: #{themes.getCSSVar(primary)};
     --wp-admin-theme-color-darker-20: #{themes.getCSSVar(primary)};
@@ -159,7 +160,7 @@
     }
 }
 
-.wpicons__style {
+.#{config.$prefix}__style {
     display: flex;
     flex-direction: column;
     gap: calc(#{themes.base(spacing)} * 3);
@@ -169,19 +170,19 @@
     }
 }
 
-.wpicons__style-color {
+.#{config.$prefix}__style-color {
     display: flex;
     flex-direction: column;
     gap: calc(#{themes.base(spacing)} * 2);
 }
 
-.wpicons__swatches {
+.#{config.$prefix}__swatches {
     display: flex;
     flex-wrap: wrap;
     gap: calc(#{themes.base(spacing)} * 2);
 }
 
-.wpicons__swatch {
+.#{config.$prefix}__swatch {
     box-sizing: border-box;
     width: 1.25rem;
     height: 1.25rem;
