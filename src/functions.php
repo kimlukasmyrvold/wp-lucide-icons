@@ -11,6 +11,16 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * True for the lite release zip, which ships no bundled icon files.
+ *
+ * The constant is written into wp-lucide-icons.php by publish.mjs. It is not defined in the repository.
+ */
+function wp_icons_is_lite(): bool
+{
+    return defined('WP_ICONS__LITE') && WP_ICONS__LITE;
+}
+
+/**
  * SVG markup for one icon, or '' when the library is unknown or disabled, or the icon does not exist.
  *
  * Safe to echo: attributes are escaped and the inner markup is sanitized by WP Icons.

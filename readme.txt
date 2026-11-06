@@ -4,7 +4,7 @@ Tags: icons, svg, lucide, phosphor, block
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -124,6 +124,9 @@ Its settings, cached catalogs in `wp-content/uploads/wp-icons/`, transients, and
 
 == Changelog ==
 
+= 2.1.0 =
+* Added: Lite release zip for sites that cannot upload the full plugin. It is the same plugin, shown as WP Icons Lite, and loads every library from the cached npm CDN instead of shipping the icon files.
+
 = 2.0.0 =
 * Added: Icon block in the Media category, with library, name, size, color, style or weight, and stroke width.
 * Added: Eight bundled libraries: Lucide, Material Symbols, Simple Icons, Phosphor, Tabler Icons, Heroicons, Ionicons, and Octicons, with style, weight, and brand-color options.
@@ -177,6 +180,9 @@ Its settings, cached catalogs in `wp-content/uploads/wp-icons/`, transients, and
 * Initial release as Lucide Icons.
 
 == Upgrade Notice ==
+
+= 2.1.0 =
+A smaller lite zip is available for sites that cannot upload the full plugin. Updating the full plugin does not change how bundled icons work.
 
 = 2.0.0 =
 Renamed to WP Icons. Adds the Icon block, eight icon libraries, Elementor and Flatsome icon elements, and PHP helpers. Requires WordPress 6.6 and PHP 8.1. Existing `[lucide_icon]` shortcodes keep working.

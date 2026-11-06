@@ -4,7 +4,7 @@
  * Plugin Name:         WP Icons
  * Plugin URI:          https://github.com/kimlukasmyrvold/wp-lucide-icons
  * Description:         Adds icon elements to place on pages, uses icons from Lucide Icons, Material Icons and other various icon libraries. Integrates with some WordPress themes like Flatsome.
- * Version:             2.0.0
+ * Version:             2.1.0
  * Requires at least:   6.6
  * Requires PHP:        8.1
  * Author:              Kim Lukas Myrvold
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WP_ICONS__VERSION', '2.0.0');
+define('WP_ICONS__VERSION', '2.1.0');
 define('WP_ICONS__MIN_PHP', '8.1');
 define('WP_ICONS__MIN_WP', '6.6');
 define('WP_ICONS__FILE', __FILE__);

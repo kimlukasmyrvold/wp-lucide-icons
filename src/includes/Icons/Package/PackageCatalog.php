@@ -24,6 +24,35 @@ final class PackageCatalog
     }
 
     /**
+     * Deletes bundled icon files left on disk by the full plugin. index.php stays.
+     */
+    public static function removeVariantFiles(): void
+    {
+        $root = WP_ICONS__PATH . 'src/includes/Icons/Catalogs';
+        if (!is_dir($root)) {
+            return;
+        }
+
+        $directories = glob($root . '/*', GLOB_ONLYDIR);
+        if (!\is_array($directories)) {
+            return;
+        }
+
+        foreach ($directories as $directory) {
+            $files = glob($directory . '/*.php');
+            if (!\is_array($files)) {
+                continue;
+            }
+            foreach ($files as $file) {
+                if (basename($file) === 'index.php' || !is_file($file)) {
+                    continue;
+                }
+                wp_delete_file($file);
+            }
+        }
+    }
+
+    /**
      * @return array{version?: string, package?: string, defaultVariant?: string, listUnion?: bool, count?: int, variants?: array<string, int>, viewBox?: array<string, string>, viewBoxes?: array<string, array<string, string>>, brands?: list<string>, meta?: array<string, array<string, string>>, excluded?: list<string>, glyph?: array{name: string, variant: string, inner: string}}
      */
     public static function index(string $libraryId): array

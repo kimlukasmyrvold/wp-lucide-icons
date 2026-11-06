@@ -6,6 +6,12 @@ The format for this changelog is based on [Keep a Changelog](https://keepachange
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).  
 Dates use the [ISO 8601 date format](https://www.iso.org/iso-8601-date-and-time-format.html) of `YYYY-MM-DD`.
 
+## [2.1.0] - 2026-11-06
+
+### Added
+
+- Lite release zip (`wp-lucide-icons-lite-{version}.zip`) for sites that cannot upload the full plugin. It is the same plugin, shown as WP Icons Lite, and loads every library from the cached npm CDN instead of shipping the icon files.
+
 ## [2.0.0] - 2026-11-05
 
 ### Added
@@ -111,7 +117,8 @@ Dates use the [ISO 8601 date format](https://www.iso.org/iso-8601-date-and-time-
 - **Insert Lucide icon** button in the text editor
 - Icons loaded from `unpkg.com/lucide@latest`
 
-[2.0.0]: https://github.com/kimlukasmyrvold/wp-lucide-icons/compare/3d3d6448d710a1620daf4f7ca2e65710c50fd27b...HEAD
+[2.1.0]: https://github.com/kimlukasmyrvold/wp-lucide-icons/compare/931afefb8d3df0523d5ad4c8c46298a0c7aca702...HEAD
+[2.0.0]: https://github.com/kimlukasmyrvold/wp-lucide-icons/compare/3d3d6448d710a1620daf4f7ca2e65710c50fd27b...931afefb8d3df0523d5ad4c8c46298a0c7aca702
 [1.3.1]: https://github.com/kimlukasmyrvold/wp-lucide-icons/compare/4fb3e6c23af4d0dd36fcc240e37ab4a8bc670ead...3d3d6448d710a1620daf4f7ca2e65710c50fd27b
 [1.3.0]: https://github.com/kimlukasmyrvold/wp-lucide-icons/compare/7279b067627e742c6de5d453a4ef9fcde9ce3eda...4fb3e6c23af4d0dd36fcc240e37ab4a8bc670ead
 [1.2.0]: https://github.com/kimlukasmyrvold/wp-lucide-icons/compare/69ab9d807cf6978daeb01b66e933b39f055d6daf...7279b067627e742c6de5d453a4ef9fcde9ce3eda

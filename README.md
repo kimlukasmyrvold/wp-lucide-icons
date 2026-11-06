@@ -125,7 +125,7 @@ WP Icons adds **Appearance → WP Icons** (Library and Settings tabs, capability
 - **Library** — browse bundled icons, preview options, copy a shortcode
 - **Settings** — defaults, which libraries are enabled, and per-library source
 
-Each library source is either **plugin** (the catalog shipped in the plugin) or **cdn** (a newer catalog downloaded from the npm registry). CDN downloads are cached under `wp-content/uploads/wp-icons/` by a background WP-Cron job and are never fetched during page views. If the cache is empty, the plugin uses the bundled catalog.
+Each library source is either **plugin** (the catalog shipped in the plugin) or **cdn** (a newer catalog downloaded from the npm registry). CDN downloads are cached under `wp-content/uploads/wp-icons/` by a background WP-Cron job and are never fetched during page views. If the cache is empty, the full plugin uses the bundled catalog. The lite release has no bundled icon files, so every library uses the CDN source and nothing from that library renders until the cache exists. See [Release zip](#release-zip).
 
 ### External requests and privacy
 
@@ -160,7 +160,7 @@ While editing, `pnpm start` rebuilds the JavaScript bundles, and `pnpm sass` wat
 | `pnpm sass`       | Watch `src/assets/scss` and write compressed CSS to `src/assets/css`.                                           |
 | `pnpm sass:build` | One-shot SCSS compile.                                                                                          |
 | `pnpm sync-icons` | Rewrite every bundled catalog from the versions pinned in `package.json`.                                       |
-| `pnpm publish`    | Zip a release with `node publish.js wp-lucide-icons.php`. This is not `npm publish`.                            |
+| `pnpm publish`    | Zip the full and lite releases with `node publish.mjs wp-lucide-icons`. This is not `npm publish`.              |
 
 Versions come from the pinned devDependencies. To bundle a newer Lucide or Material Symbols release, change the pin (`pnpm add -D lucide-static@x`) and run the matching sync script.
 
@@ -185,11 +185,18 @@ composer install --no-dev --optimize-autoloader
 
 ## Release zip
 
-`publish.js` reads the `Version:` header in `wp-lucide-icons.php` and writes `releases/v{version}/wp-lucide-icons.zip`. It does not bump the version, create a git tag, or upload the zip.
+`publish.mjs` reads the `Version:` header in `wp-lucide-icons.php` and writes two archives. It does not bump the version, create a git tag, or upload the zip.
+
+- `releases/wp-lucide-icons-{version}.zip` — full plugin, with the bundled icon catalogs
+- `releases/wp-lucide-icons-lite-{version}.zip` — same plugin folder (`wp-lucide-icons/`), without the icon path files under `src/includes/Icons/Catalogs/`. Each library's `index.php` stays, so admin marks, viewBoxes, and brand metadata are still local. The lite copy of `wp-lucide-icons.php` is named **WP Icons Lite** and defines `WP_ICONS__LITE`. Every library then uses the CDN source: the server downloads the npm packages and caches them in `uploads/wp-icons/`.
+
+Installing one zip replaces the other. WordPress does not delete files a new zip omits, so a lite install removes leftover variant catalog files from an earlier full install. Switching back to the full zip restores them.
+
+The lite build needs outbound HTTPS to `registry.npmjs.org`, the PHP `Phar` extension, a writable uploads directory, and WP-Cron (or a server cron that hits `wp-cron.php`). Until the background fetch finishes, the picker has no icons. Front-end page views still only read the local cache.
 
 1. Update the version in both places in `wp-lucide-icons.php`: the `Version:` header and the `WP_ICONS__VERSION` constant.
 2. Update `package.json` and [CHANGELOG.md](CHANGELOG.md).
-3. Build what the zip must contain:
+3. Build what the zips must contain:
 
 ```bash
 composer install --no-dev --optimize-autoloader
@@ -198,16 +205,16 @@ pnpm sass:build
 pnpm publish
 ```
 
-The zip includes:
+Each zip includes:
 
 - `wp-lucide-icons.php`, `bootstrap.php`, `uninstall.php`, `src/functions.php`
 - `src/assets/css`, `src/assets/js`, `src/includes`, `src/languages`, `src/templates`
 - `build/`
 - `vendor/`
 
-It omits `node_modules`, `scripts/`, SCSS, Composer and npm config, this README, the changelog, and `publish.js`.
+The lite zip omits every catalog PHP file except `index.php`. Both omit `node_modules`, `scripts/`, SCSS, Composer and npm config, this README, the changelog, and `publish.mjs`.
 
-Run `pnpm sync-icons` before that sequence when the bundled catalogs should change.
+Run `pnpm sync-icons` before that sequence when the bundled catalogs should change. The full zip is the one that ships those catalogs.
 
 ## PHP
 
