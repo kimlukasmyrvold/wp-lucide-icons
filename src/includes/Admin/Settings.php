@@ -66,7 +66,7 @@ class Settings
                     ...$libraryDefaults,
                     ...$stored['libraries'][$id],
                     'enabled' => !empty($stored['libraries'][$id]['enabled']),
-                    'source' => ($stored['libraries'][$id]['source'] ?? '') === 'cdn' ? 'cdn' : 'plugin',
+                    'source' => self::normalizeSource((string) ($stored['libraries'][$id]['source'] ?? '')),
                 ];
             }
         }
@@ -103,6 +103,18 @@ class Settings
     public static function librarySource(array $settings, string $libraryId): string
     {
         $source = $settings['libraries'][$libraryId]['source'] ?? 'plugin';
+
+        return self::normalizeSource(\is_string($source) ? $source : 'plugin');
+    }
+
+    /**
+     * The lite build has no bundled icon files, so every library uses the CDN source.
+     */
+    private static function normalizeSource(string $source): string
+    {
+        if (wp_icons_is_lite()) {
+            return 'cdn';
+        }
 
         return $source === 'cdn' ? 'cdn' : 'plugin';
     }
@@ -230,7 +242,7 @@ class Settings
                 ? $input['libraries'][$id]
                 : [];
 
-            $source = (isset($posted['source']) && $posted['source'] === 'cdn') ? 'cdn' : 'plugin';
+            $source = self::normalizeSource((isset($posted['source']) && $posted['source'] === 'cdn') ? 'cdn' : 'plugin');
             $version = isset($posted['cdn_version']) ? trim((string) $posted['cdn_version']) : $libraryDefaults['cdn_version'];
             if ($version !== 'latest' && !preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/', $version)) {
                 add_settings_error(
@@ -384,6 +396,7 @@ class Settings
                 'cached_at' => CdnCatalog::fetchedAt($id),
                 'cached_count' => CdnCatalog::count($id),
                 'fetching' => CdnCatalog::isFetching($id),
+                'fetch_error' => CdnCatalog::lastError($id),
                 'variants' => $library->variants(),
                 'variant_param' => $library->variantParam(),
                 'variant' => $variant,
@@ -458,7 +471,7 @@ class Settings
         foreach (array_keys(Registry::all()) as $id) {
             $libraries[$id] = [
                 'enabled' => true,
-                'source' => 'plugin',
+                'source' => wp_icons_is_lite() ? 'cdn' : 'plugin',
                 'cdn_version' => 'latest',
                 'variant' => '',
                 'stroke' => '',

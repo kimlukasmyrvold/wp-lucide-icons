@@ -40,7 +40,10 @@ $range_fill = static function (float $value, float $min, float $max): string {
 
 $icon = require __DIR__ . '/partials/icons.php';
 $active = 'settings';
-$description = __('Set defaults for new icons and choose where each icon library is loaded from.', 'wpicons');
+$lite = wp_icons_is_lite();
+$description = $lite
+    ? __('Set defaults for new icons. Icon files are downloaded from npm and cached on this site.', 'wpicons')
+    : __('Set defaults for new icons and choose where each icon library is loaded from.', 'wpicons');
 
 // Collect notices from the Settings API (same data settings_errors() would print), so they can be shown
 // in the plugin's own notice style and CDN version errors can be shown next to their field.
@@ -278,6 +281,7 @@ $brand_notice = __('Brand icons are trademarks of their owners and may have thei
                     if (!\in_array($cdn_version, $versions, true) && $cdn_version !== 'latest' && $cdn_version !== '') {
                         $versions = [...[$cdn_version], ...$versions];
                     }
+                    $fetch_error = (string) ($library['fetch_error'] ?? '');
                     $status = 'none';
                     if ($field_error !== '') {
                         $status = 'error';
@@ -285,6 +289,8 @@ $brand_notice = __('Brand icons are trademarks of their owners and may have thei
                         $status = 'fetching';
                     } elseif ($library['cached_version']) {
                         $status = 'cached';
+                    } elseif ($fetch_error !== '') {
+                        $status = 'error';
                     }
                     $status_labels = [
                         'error' => __('Error', 'wpicons'),
@@ -375,6 +381,17 @@ $brand_notice = __('Brand icons are trademarks of their owners and may have thei
                             <?php endif; ?>
 
                             <div class="wpicons__librow__source">
+                                <?php if ($lite): ?>
+                                    <input type="hidden" name="<?= esc_attr($prefix); ?>[source]" value="cdn">
+                                    <p class="wpicons__help">
+                                        <?= esc_html(sprintf(
+                                            /* translators: 1: npm package, 2: catalog version recorded in this build */
+                                            __('This build does not include icon files. %1$s is downloaded from npm and cached on this site. The catalog index is %2$s.', 'wpicons'),
+                                            $library['package'],
+                                            $library['bundled_version']
+                                        )); ?>
+                                    </p>
+                                <?php else: ?>
                                 <fieldset class="wpicons__field">
                                     <legend class="wpicons__field__label wpicons__field__label--sm"><?php esc_html_e('Icon source', 'wpicons'); ?></legend>
                                     <div class="wpicons__segmented">
@@ -396,6 +413,7 @@ $brand_notice = __('Brand icons are trademarks of their owners and may have thei
                                         )); ?>
                                     </p>
                                 </fieldset>
+                                <?php endif; ?>
 
                                 <div class="wpicons__field wpicons__field--tight wpicons__librow__version">
                                     <label class="wpicons__field__label wpicons__field__label--sm" for="<?= esc_attr($select_id); ?>"><?php esc_html_e('CDN version', 'wpicons'); ?></label>
@@ -440,12 +458,23 @@ $brand_notice = __('Brand icons are trademarks of their owners and may have thei
                                 <span class="wpicons__status__dot" aria-hidden="true"></span>
                                 <span>
                                     <?php if ($status === 'fetching'): ?>
-                                        <?= esc_html(sprintf(
-                                            /* translators: 1: npm package, 2: requested version */
-                                            __('Fetching %1$s@%2$s in the background. The bundled catalog is used until it finishes.', 'wpicons'),
-                                            $library['package'],
-                                            $cdn_version
-                                        )); ?>
+                                        <?php if ($lite): ?>
+                                            <?= esc_html(sprintf(
+                                                /* translators: 1: npm package, 2: requested version */
+                                                __('Fetching %1$s@%2$s in the background. Icons from this library are unavailable until it finishes.', 'wpicons'),
+                                                $library['package'],
+                                                $cdn_version
+                                            )); ?>
+                                        <?php else: ?>
+                                            <?= esc_html(sprintf(
+                                                /* translators: 1: npm package, 2: requested version */
+                                                __('Fetching %1$s@%2$s in the background. The bundled catalog is used until it finishes.', 'wpicons'),
+                                                $library['package'],
+                                                $cdn_version
+                                            )); ?>
+                                        <?php endif; ?>
+                                    <?php elseif ($field_error === '' && $fetch_error !== '' && $status === 'error'): ?>
+                                        <?= esc_html($fetch_error); ?>
                                     <?php elseif ($library['cached_version']): ?>
                                         <?= esc_html(sprintf(
                                             /* translators: 1: cached version, 2: icon count, 3: date */
@@ -457,7 +486,11 @@ $brand_notice = __('Brand icons are trademarks of their owners and may have thei
                                                 : ''
                                         )); ?>
                                     <?php else: ?>
-                                        <?php esc_html_e('No CDN catalog cached yet. Save with CDN selected to fetch one in the background.', 'wpicons'); ?>
+                                        <?php if ($lite): ?>
+                                            <?php esc_html_e('No CDN catalog cached yet. It will download in the background.', 'wpicons'); ?>
+                                        <?php else: ?>
+                                            <?php esc_html_e('No CDN catalog cached yet. Save with CDN selected to fetch one in the background.', 'wpicons'); ?>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </span>
                             </p>
@@ -611,7 +644,7 @@ $brand_notice = __('Brand icons are trademarks of their owners and may have thei
             function syncSources() {
                 rows.forEach(function (row) {
                     var checked = row.querySelector('input[type="radio"][name*="[source]"]:checked');
-                    var cdn = !!checked && checked.value === 'cdn';
+                    var cdn = !checked || checked.value === 'cdn';
                     var version = row.querySelector('.wpicons__cdn-version');
                     if (version) version.disabled = !cdn;
                     row.querySelectorAll('[data-wpicons-source-badge]').forEach(function (badge) {

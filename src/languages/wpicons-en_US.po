@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: WP Icons\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-26 09:20+0000\n"
-"PO-Revision-Date: 2026-11-04 10:45+0000\n"
+"PO-Revision-Date: 2026-11-06 08:05+0000\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -16,36 +16,43 @@ msgstr ""
 "X-Domain: wpicons"
 
 #. 1: number of enabled icon libraries, 2: total number of icon libraries
-#: src/templates/admin/settings.php:106
+#: src/templates/admin/settings.php:109
 #, php-format
 msgid "%1$d of %2$d enabled"
 msgstr "%1$d of %2$d enabled"
 
 #. 1: npm package, 2: bundled version
-#: src/templates/admin/settings.php:316
+#: src/templates/admin/settings.php:322
 #, php-format
 msgid "%1$s · %2$s"
 msgstr "%1$s · %2$s"
 
-#: src/templates/admin/settings.php:590 src/templates/admin/settings.php:591
+#: src/templates/admin/settings.php:623 src/templates/admin/settings.php:624
 msgid "%d unsaved change"
 msgid_plural "%d unsaved changes"
 msgstr[0] "%d unsaved change"
 msgstr[1] "%d unsaved changes"
 
 #. %s: icon library label
-#: src/templates/admin/settings.php:361
+#: src/templates/admin/settings.php:367
 #, php-format
 msgid "%s settings"
 msgstr "%s settings"
 
-#: src/templates/admin/settings.php:511
+#: src/templates/admin/settings.php:544
 msgid "0.25–4 · step 0.25"
 msgstr "0.25–4 · step 0.25"
 
-#: src/templates/admin/settings.php:187
+#: src/templates/admin/settings.php:190
 msgid "8–256 px"
 msgstr "8–256 px"
+
+#: src/includes/Integrations/Flatsome/IconElement.php:81
+msgid "Accessible name"
+msgstr "Accessible name"
+
+msgid "Accessible title"
+msgstr "Accessible title"
 
 #. Description of the plugin
 msgid ""
@@ -57,15 +64,23 @@ msgstr ""
 "Icons and other various icon libraries. Integrates with some WordPress "
 "themes like Flatsome."
 
-#: src/includes/Admin/Assets.php:445
+#: src/includes/Admin/Assets.php:457
 msgid "Alert"
 msgstr "Alert"
 
-#: src/templates/admin/settings.php:251
+#: src/includes/Integrations/Flatsome/IconElement.php:97
+msgid "Align"
+msgstr "Align"
+
+#: src/includes/Integrations/Elementor/IconWidget.php:58
+msgid "Alignment"
+msgstr "Alignment"
+
+#: src/templates/admin/settings.php:254
 msgid "All"
 msgstr "All"
 
-#: src/includes/Admin/Settings.php:287
+#: src/includes/Admin/Settings.php:299
 msgid "At least one icon library must stay enabled."
 msgstr "At least one icon library must stay enabled."
 
@@ -122,15 +137,15 @@ msgstr "WP Icons"
 msgid "Bold"
 msgstr "Bold"
 
-#: src/templates/admin/settings.php:535
+#: src/templates/admin/settings.php:568
 msgid "Brand color"
 msgstr "Brand color"
 
-#: src/templates/admin/settings.php:336
+#: src/templates/admin/settings.php:342
 msgid "Brand icons"
 msgstr "Brand icons"
 
-#: src/templates/admin/settings.php:107
+#: src/templates/admin/settings.php:110
 msgid ""
 "Brand icons are trademarks of their owners and may have their own usage "
 "guidelines. Using them doesn’t imply endorsement."
@@ -146,12 +161,12 @@ msgstr ""
 "Browse bundled icon libraries, preview customization, and copy a shortcode. "
 "In the block editor, insert the Icon block to place an icon on a page."
 
-#: src/templates/admin/settings.php:323
+#: src/templates/admin/settings.php:329
 msgid "Bundled"
 msgstr "Bundled"
 
 #. 1: npm package, 2: bundled version
-#: src/templates/admin/settings.php:393
+#: src/templates/admin/settings.php:410
 #, php-format
 msgid ""
 "Bundled catalog is %1$s %2$s. CDN downloads a newer package in the "
@@ -160,107 +175,150 @@ msgstr ""
 "Bundled catalog is %1$s %2$s. CDN downloads a newer package in the "
 "background and stores it on this site."
 
-#: src/templates/admin/settings.php:292
+#: src/templates/admin/settings.php:298
 msgid "Cached"
 msgstr "Cached"
 
 #. 1: cached version, 2: icon count, 3: date
-#: src/templates/admin/settings.php:452
+#: src/templates/admin/settings.php:481
 #, php-format
 msgid "Cached CDN catalog: %1$s (%2$d icons)%3$s."
 msgstr "Cached CDN catalog: %1$s (%2$d icons)%3$s."
 
-#: src/templates/admin/settings.php:598
+#: src/templates/admin/settings.php:631
 msgid "Cancel"
 msgstr "Cancel"
 
-#: src/templates/admin/settings.php:324
+#: src/templates/admin/settings.php:330
 msgid "CDN"
 msgstr "CDN"
 
-#: src/templates/admin/settings.php:387
+#: src/templates/admin/settings.php:404
 msgid "CDN (npm, cached)"
 msgstr "CDN (npm, cached)"
 
-#: src/templates/admin/settings.php:401
+#: src/templates/admin/settings.php:419
 msgid "CDN version"
 msgstr "CDN version"
 
 #. %s: icon library label
-#: src/includes/Admin/Settings.php:241
+#: src/includes/Admin/Settings.php:253
 #, php-format
 msgid ""
 "CDN version for %s must be “latest” or a valid semver (for example 0.468.0)."
 msgstr ""
 "CDN version for %s must be “latest” or a valid semver (for example 0.468.0)."
 
-#: src/templates/admin/settings.php:585 src/templates/admin/settings.php:595
+#: src/includes/Integrations/Elementor/IconWidget.php:66
+#: src/includes/Integrations/Flatsome/IconElement.php:102
+msgid "Center"
+msgstr "Center"
+
+#: src/templates/admin/settings.php:618 src/templates/admin/settings.php:628
 msgid "Changes apply to new icons. Existing blocks keep their own settings."
 msgstr "Changes apply to new icons. Existing blocks keep their own settings."
 
-#: src/templates/admin/settings.php:428
+#: src/includes/Shortcode/Shortcode.php:52
+#: src/includes/Integrations/Elementor/IconWidget.php:88
+msgid "Choose an icon"
+msgstr "Choose an icon"
+
+#: src/includes/Integrations/Elementor/IconControl.php:48
+#: src/includes/Integrations/Flatsome/IconElement.php:151
+msgid "Choose icon"
+msgstr "Choose icon"
+
+#: src/includes/Integrations/Flatsome/IconElement.php:68
+msgid "Color"
+msgstr "Color"
+
+#: src/includes/Icons/Cdn/CdnCatalog.php:397
+msgid "Could not create the local CDN cache directory."
+msgstr "Could not create the local CDN cache directory."
+
+#. 1: npm package name, 2: version
+#: src/includes/Icons/Cdn/CdnCatalog.php:384
+#, php-format
+msgid "Could not find tarball for %1$s@%2$s."
+msgstr "Could not find tarball for %1$s@%2$s."
+
+#: src/templates/admin/settings.php:446
 msgid ""
 "Could not load versions from npm. Enter “latest” or a semver such as 0.468.0."
 msgstr ""
 "Could not load versions from npm. Enter “latest” or a semver such as 0.468.0."
 
-#: src/templates/admin/settings.php:537
+#: src/includes/Icons/Cdn/CdnCatalog.php:392
+msgid "Could not parse icon SVGs from the CDN package."
+msgstr "Could not parse icon SVGs from the CDN package."
+
+#. %s: npm package name
+#: src/includes/Icons/Cdn/CdnCatalog.php:368
+#, php-format
+msgid "Could not resolve npm version for %s."
+msgstr "Could not resolve npm version for %s."
+
+#: src/includes/Icons/Cdn/CdnCatalog.php:418
+msgid "Could not write the CDN catalog cache."
+msgstr "Could not write the CDN catalog cache."
+
+#: src/templates/admin/settings.php:570
 msgid "Custom"
 msgstr "Custom"
 
-#: src/templates/admin/settings.php:558
+#: src/templates/admin/settings.php:591
 msgid "Custom color"
 msgstr "Custom color"
 
-#: src/templates/admin/settings.php:331
+#: src/templates/admin/settings.php:337
 msgid "Default"
 msgstr "Default"
 
-#: src/templates/admin/settings.php:207 src/templates/admin/settings.php:223
+#: src/templates/admin/settings.php:210 src/templates/admin/settings.php:226
 msgid "Default color"
 msgstr "Default color"
 
-#: src/templates/admin/settings.php:541
+#: src/templates/admin/settings.php:574
 msgid "Default color mode"
 msgstr "Default color mode"
 
-#: src/templates/admin/settings.php:138
+#: src/templates/admin/settings.php:141
 msgid "Default library"
 msgstr "Default library"
 
-#: src/templates/admin/settings.php:186 src/templates/admin/settings.php:198
+#: src/templates/admin/settings.php:189 src/templates/admin/settings.php:201
 msgid "Default size"
 msgstr "Default size"
 
-#: src/templates/admin/settings.php:510 src/templates/admin/settings.php:522
+#: src/templates/admin/settings.php:543 src/templates/admin/settings.php:555
 msgid "Default stroke width"
 msgstr "Default stroke width"
 
-#: src/templates/admin/settings.php:299
+#: src/templates/admin/settings.php:305
 msgid "Default style"
 msgstr "Default style"
 
-#: src/templates/admin/settings.php:299
+#: src/templates/admin/settings.php:305
 msgid "Default weight"
 msgstr "Default weight"
 
-#: src/templates/admin/settings.php:132
+#: src/templates/admin/settings.php:135
 msgid "Defaults"
 msgstr "Defaults"
 
-#: src/templates/admin/settings.php:468
+#: src/templates/admin/settings.php:501
 msgid "Defaults for this library"
 msgstr "Defaults for this library"
 
-#: src/templates/admin/settings.php:253
+#: src/templates/admin/settings.php:256
 msgid "Disabled"
 msgstr "Disabled"
 
-#: src/templates/admin/settings.php:178
+#: src/templates/admin/settings.php:181
 msgid "Disabled libraries are managed below."
 msgstr "Disabled libraries are managed below."
 
-#: src/templates/admin/settings.php:119
+#: src/templates/admin/settings.php:122
 msgid "Dismiss this notice"
 msgstr "Dismiss this notice"
 
@@ -268,26 +326,40 @@ msgstr "Dismiss this notice"
 msgid "Duotone"
 msgstr "Duotone"
 
+#: src/includes/Integrations/Flatsome/IconElement.php:83
+msgid "Empty hides the icon from assistive technology."
+msgstr "Empty hides the icon from assistive technology."
+
 #. %s: icon library label
-#: src/templates/admin/settings.php:344
+#: src/templates/admin/settings.php:350
 #, php-format
 msgid "Enable %s"
 msgstr "Enable %s"
 
-#: src/templates/admin/settings.php:252
+#: src/templates/admin/settings.php:255
 msgid "Enabled"
 msgstr "Enabled"
 
-#: src/templates/admin/settings.php:158
+#: src/templates/admin/settings.php:161
 msgid "Enabled libraries"
 msgstr "Enabled libraries"
 
-#: src/templates/admin/settings.php:290
+#: src/templates/admin/settings.php:296
 msgid "Error"
 msgstr "Error"
 
 #. 1: npm package, 2: requested version
-#: src/templates/admin/settings.php:445
+#: src/templates/admin/settings.php:464
+#, php-format
+msgid ""
+"Fetching %1$s@%2$s in the background. Icons from this library are "
+"unavailable until it finishes."
+msgstr ""
+"Fetching %1$s@%2$s in the background. Icons from this library are "
+"unavailable until it finishes."
+
+#. 1: npm package, 2: requested version
+#: src/templates/admin/settings.php:471
 #, php-format
 msgid ""
 "Fetching %1$s@%2$s in the background. The bundled catalog is used until it "
@@ -296,11 +368,11 @@ msgstr ""
 "Fetching %1$s@%2$s in the background. The bundled catalog is used until it "
 "finishes."
 
-#: src/templates/admin/settings.php:83
+#: src/templates/admin/settings.php:86
 msgid "Fetching the CDN catalog in the background."
 msgstr "Fetching the CDN catalog in the background."
 
-#: src/templates/admin/settings.php:291
+#: src/templates/admin/settings.php:297
 msgid "Fetching…"
 msgstr "Fetching…"
 
@@ -329,7 +401,14 @@ msgstr ""
 "https://www.kimlukas.dev/?utm_source=wordpress&utm_medium=wp-"
 "icons&utm_campaign=author_uri"
 
-#: src/templates/admin/settings.php:234
+#: src/includes/Integrations/Elementor/IconWidget.php:49
+#: src/includes/Integrations/Elementor/IconWidget.php:53
+#: src/includes/Integrations/Flatsome/IconElement.php:46
+#: src/includes/Integrations/Flatsome/IconElement.php:56
+msgid "Icon"
+msgstr "Icon"
+
+#: src/templates/admin/settings.php:237
 msgid "Icon libraries"
 msgstr "Icon libraries"
 
@@ -341,11 +420,11 @@ msgstr "Icon licenses"
 msgid "Icon not found."
 msgstr "Icon not found."
 
-#: src/templates/admin/settings.php:379
+#: src/templates/admin/settings.php:396
 msgid "Icon source"
 msgstr "Icon source"
 
-#: src/templates/admin/settings.php:239
+#: src/templates/admin/settings.php:242
 msgid ""
 "Icons are stored in the plugin. Choose CDN only if this plugin has not been "
 "updated and you need a newer catalog. CDN catalogs are cached locally and "
@@ -355,7 +434,7 @@ msgstr ""
 "updated and you need a newer catalog. CDN catalogs are cached locally and "
 "are never fetched during page views."
 
-#: src/templates/admin/settings.php:576
+#: src/templates/admin/settings.php:609
 msgid ""
 "Icons are third-party works under their own licenses. You’re responsible for "
 "making sure your use complies with each icon’s license and the owner’s "
@@ -377,13 +456,16 @@ msgstr ""
 "guidelines. Brand icons are trademarks of their owners; using them doesn’t "
 "imply endorsement."
 
-#: src/templates/admin/settings.php:536
+#: src/templates/admin/settings.php:569
 msgid "Inherit text"
 msgstr "Inherit text"
 
-#: src/templates/admin/settings.php:212
+#: src/templates/admin/settings.php:215
 msgid "Inherit text color"
 msgstr "Inherit text color"
+
+msgid "Insert icon"
+msgstr "Insert icon"
 
 #: src/includes/Icons/Package/PackageLibrary.php:132
 msgid "Ionicons"
@@ -393,11 +475,17 @@ msgstr "Ionicons"
 msgid "Kim Lukas Myrvold"
 msgstr "Kim Lukas Myrvold"
 
-#: src/templates/admin/settings.php:411
+#: src/templates/admin/settings.php:429
 msgid "latest"
 msgstr "latest"
 
-#: src/includes/Admin/Settings.php:344
+#: src/includes/Integrations/Elementor/IconWidget.php:62
+#: src/includes/Integrations/Flatsome/IconElement.php:101
+msgid "Left"
+msgstr "Left"
+
+#: src/includes/Admin/Settings.php:356
+#: src/includes/Integrations/Flatsome/IconElement.php:50
 #: src/templates/admin/partials/header.php:18
 msgid "Library"
 msgstr "Library"
@@ -416,6 +504,9 @@ msgstr "Light"
 msgid "Lucide Icons"
 msgstr "Lucide Icons"
 
+msgid "Match text size"
+msgstr "Match text size"
+
 #: src/includes/Icons/Package/PackageLibrary.php:68
 msgid "Material Symbols"
 msgstr "Material Symbols"
@@ -428,7 +519,11 @@ msgstr "Micro"
 msgid "Mini"
 msgstr "Mini"
 
-#: src/templates/admin/settings.php:460
+#: src/templates/admin/settings.php:490
+msgid "No CDN catalog cached yet. It will download in the background."
+msgstr "No CDN catalog cached yet. It will download in the background."
+
+#: src/templates/admin/settings.php:492
 msgid ""
 "No CDN catalog cached yet. Save with CDN selected to fetch one in the "
 "background."
@@ -436,7 +531,11 @@ msgstr ""
 "No CDN catalog cached yet. Save with CDN selected to fetch one in the "
 "background."
 
-#: src/templates/admin/settings.php:569
+#: src/includes/Integrations/Elementor/IconControl.php:60
+msgid "No icon selected"
+msgstr "No icon selected"
+
+#: src/templates/admin/settings.php:602
 msgid "No libraries match."
 msgstr "No libraries match."
 
@@ -444,7 +543,7 @@ msgstr "No libraries match."
 msgid "No license files were found in the plugin’s licenses folder."
 msgstr "No license files were found in the plugin’s licenses folder."
 
-#: src/templates/admin/settings.php:293
+#: src/templates/admin/settings.php:299
 msgid "Not cached"
 msgstr "Not cached"
 
@@ -452,7 +551,7 @@ msgstr "Not cached"
 msgid "Octicons"
 msgstr "Octicons"
 
-#: src/templates/admin/settings.php:181
+#: src/templates/admin/settings.php:184
 msgid "Only enabled libraries can be the default."
 msgstr "Only enabled libraries can be the default."
 
@@ -463,7 +562,7 @@ msgid "Outline"
 msgstr "Outline"
 
 #. %s: icon library label
-#: src/templates/admin/settings.php:472
+#: src/templates/admin/settings.php:505
 #, php-format
 msgid "Override the global defaults for new icons from %s."
 msgstr "Override the global defaults for new icons from %s."
@@ -472,19 +571,19 @@ msgstr "Override the global defaults for new icons from %s."
 msgid "Phosphor"
 msgstr "Phosphor"
 
-#: src/templates/admin/settings.php:221 src/templates/admin/settings.php:556
+#: src/templates/admin/settings.php:224 src/templates/admin/settings.php:589
 msgid "Pick a color"
 msgstr "Pick a color"
 
-#: src/templates/admin/settings.php:383
+#: src/templates/admin/settings.php:400
 msgid "Plugin (bundled)"
 msgstr "Plugin (bundled)"
 
-#: src/includes/Admin/Assets.php:427
+#: src/includes/Admin/Assets.php:439
 msgid "Primary"
 msgstr "Primary"
 
-#: src/templates/admin/settings.php:202
+#: src/templates/admin/settings.php:205
 msgid "px"
 msgstr "px"
 
@@ -492,30 +591,43 @@ msgstr "px"
 msgid "Regular"
 msgstr "Regular"
 
-#: src/templates/admin/settings.php:599
+#: src/includes/Integrations/Elementor/IconWidget.php:70
+#: src/includes/Integrations/Flatsome/IconElement.php:103
+msgid "Right"
+msgstr "Right"
+
+#: src/templates/admin/settings.php:632
 msgid "Save changes"
 msgstr "Save changes"
 
-#: src/templates/admin/settings.php:245 src/templates/admin/settings.php:246
+#: src/templates/admin/settings.php:248 src/templates/admin/settings.php:249
 msgid "Search libraries"
 msgstr "Search libraries"
 
-#: src/includes/Admin/Assets.php:433
+#: src/includes/Admin/Assets.php:445
 msgid "Secondary"
 msgstr "Secondary"
 
-#: src/templates/admin/settings.php:43
+#: src/templates/admin/settings.php:46
 msgid ""
 "Set defaults for new icons and choose where each icon library is loaded from."
 msgstr ""
 "Set defaults for new icons and choose where each icon library is loaded from."
 
-#: src/includes/Admin/Settings.php:345
+#: src/templates/admin/settings.php:45
+msgid ""
+"Set defaults for new icons. Icon files are downloaded from npm and cached on "
+"this site."
+msgstr ""
+"Set defaults for new icons. Icon files are downloaded from npm and cached on "
+"this site."
+
+#: src/includes/Admin/Settings.php:357
 #: src/templates/admin/partials/header.php:23
 msgid "Settings"
 msgstr "Settings"
 
-#: src/templates/admin/settings.php:81
+#: src/templates/admin/settings.php:84
 msgid "Settings saved."
 msgstr "Settings saved."
 
@@ -523,7 +635,7 @@ msgstr "Settings saved."
 msgid "Sharp"
 msgstr "Sharp"
 
-#: src/templates/admin/settings.php:248
+#: src/templates/admin/settings.php:251
 msgid "Show libraries"
 msgstr "Show libraries"
 
@@ -531,11 +643,26 @@ msgstr "Show libraries"
 msgid "Simple Icons"
 msgstr "Simple Icons"
 
+#: src/includes/Integrations/Flatsome/IconElement.php:88
+msgid "Size"
+msgstr "Size"
+
 #: src/includes/Icons/Package/PackageLibrary.php:125
 msgid "Solid"
 msgstr "Solid"
 
-#: src/includes/Admin/Assets.php:439
+#: src/includes/Integrations/Flatsome/IconElement.php:75
+msgid "Stroke"
+msgstr "Stroke"
+
+msgid "Stroke width"
+msgstr "Stroke width"
+
+#: src/includes/Integrations/Flatsome/IconElement.php:62
+msgid "Style"
+msgstr "Style"
+
+#: src/includes/Admin/Assets.php:451
 msgid "Success"
 msgstr "Success"
 
@@ -543,19 +670,40 @@ msgstr "Success"
 msgid "Tabler Icons"
 msgstr "Tabler Icons"
 
+#: src/includes/Icons/Cdn/CdnCatalog.php:360
+msgid "The PHP Phar extension is required to download icon catalogs from npm."
+msgstr "The PHP Phar extension is required to download icon catalogs from npm."
+
 #: src/includes/Icons/Package/PackageLibrary.php:96
 msgid "Thin"
 msgstr "Thin"
+
+#. 1: npm package, 2: catalog version recorded in this build
+#: src/templates/admin/settings.php:389
+#, php-format
+msgid ""
+"This build does not include icon files. %1$s is downloaded from npm and "
+"cached on this site. The catalog index is %2$s."
+msgstr ""
+"This build does not include icon files. %1$s is downloaded from npm and "
+"cached on this site. The catalog index is %2$s."
+
+#: src/includes/Icons/Cdn/CdnCatalog.php:356
+msgid "Unknown library"
+msgstr "Unknown library"
 
 #: src/includes/Rest/IconsController.php:189
 msgid "Unknown or disabled icon library."
 msgstr "Unknown or disabled icon library."
 
-#: src/templates/admin/settings.php:227
+msgid "Update"
+msgstr "Update"
+
+#: src/templates/admin/settings.php:230
 msgid "Use currentColor to inherit text color, or a CSS color."
 msgstr "Use currentColor to inherit text color, or a CSS color."
 
-#: src/templates/admin/settings.php:133
+#: src/templates/admin/settings.php:136
 msgid ""
 "Used when an icon block or shortcode doesn’t set its own value. Style and "
 "stroke defaults are set per library below."
@@ -563,12 +711,15 @@ msgstr ""
 "Used when an icon block or shortcode doesn’t set its own value. Style and "
 "stroke defaults are set per library below."
 
-#: src/templates/admin/settings.php:577
+#: src/templates/admin/settings.php:610
 msgid "View licenses"
 msgstr "View licenses"
 
 #. Name of the plugin
 #: src/includes/Admin/Menu.php:39 src/includes/Admin/Menu.php:40
+#: src/includes/Integrations/Elementor/IconWidget.php:25
+#: src/includes/Integrations/Elementor/Integration.php:87
+#: src/includes/Integrations/Flatsome/IconElement.php:39
 #: src/templates/admin/partials/header.php:36
 msgid "WP Icons"
 msgstr "WP Icons"
@@ -585,6 +736,6 @@ msgstr ""
 msgid "WP Icons pages"
 msgstr "WP Icons pages"
 
-#: src/templates/admin/settings.php:594
+#: src/templates/admin/settings.php:627
 msgid "You have unsaved changes"
 msgstr "You have unsaved changes"

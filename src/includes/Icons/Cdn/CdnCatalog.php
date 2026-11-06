@@ -5,6 +5,7 @@ namespace WPIcons\Icons\Cdn;
 use WPIcons\Admin\Settings;
 use WPIcons\Icons\Exclusions;
 use WPIcons\Icons\LibraryInterface;
+use WPIcons\Icons\Package\PackageCatalog;
 use WPIcons\Icons\Package\PackageLibrary;
 use WPIcons\Icons\Registry;
 use WPIcons\Icons\Svg;
@@ -25,6 +26,8 @@ final class CdnCatalog
 
     private const FETCHING_TRANSIENT = 'wp_icons_cdn_fetching';
 
+    private const ERROR_OPTION = 'wp_icons__cdn_errors';
+
     /** @var array<string, array{variants: array<string, array<string, string>>, meta: array<string, array<string, string>>, viewBoxes: array<string, array<string, string>>}> */
     private static array $cache = [];
 
@@ -38,6 +41,17 @@ final class CdnCatalog
     {
         if (!wp_next_scheduled(self::CRON_HOOK)) {
             wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', self::CRON_HOOK);
+        }
+
+        if (!wp_icons_is_lite()) {
+            return;
+        }
+
+        // A zip upload does not delete catalog files the new zip omits.
+        PackageCatalog::removeVariantFiles();
+
+        if (self::liteCacheMissing()) {
+            self::queueRefresh();
         }
     }
 
@@ -81,6 +95,57 @@ final class CdnCatalog
         $pending = get_transient(self::FETCHING_TRANSIENT);
 
         return \is_array($pending) && \in_array($libraryId, $pending, true);
+    }
+
+    public static function lastError(string $libraryId): string
+    {
+        $errors = get_option(self::ERROR_OPTION, []);
+        if (!\is_array($errors) || !isset($errors[$libraryId]) || !\is_string($errors[$libraryId])) {
+            return '';
+        }
+
+        return $errors[$libraryId];
+    }
+
+    /**
+     * @return array{ok: false, message: string}
+     */
+    private static function fail(string $libraryId, string $message): array
+    {
+        $errors = get_option(self::ERROR_OPTION, []);
+        if (!\is_array($errors)) {
+            $errors = [];
+        }
+        $errors[$libraryId] = $message;
+        update_option(self::ERROR_OPTION, $errors, false);
+
+        return ['ok' => false, 'message' => $message];
+    }
+
+    private static function clearError(string $libraryId): void
+    {
+        $errors = get_option(self::ERROR_OPTION, []);
+        if (!\is_array($errors) || !isset($errors[$libraryId])) {
+            return;
+        }
+
+        unset($errors[$libraryId]);
+        update_option(self::ERROR_OPTION, $errors, false);
+    }
+
+    private static function liteCacheMissing(): bool
+    {
+        $settings = Settings::get();
+        foreach (array_keys(Registry::all()) as $id) {
+            if (!Settings::libraryEnabled($settings, $id)) {
+                continue;
+            }
+            if (self::version($id) === null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function singleEventWaiting(): bool
@@ -288,33 +353,48 @@ final class CdnCatalog
     {
         $library = Registry::get($libraryId);
         if ($library === null) {
-            return ['ok' => false, 'message' => 'Unknown library'];
+            return self::fail($libraryId, __('Unknown library', 'wpicons'));
+        }
+
+        if (!class_exists(\PharData::class)) {
+            return self::fail($libraryId, __('The PHP Phar extension is required to download icon catalogs from npm.', 'wpicons'));
         }
 
         $package = $library->npmPackage();
         $resolved = self::resolveNpmVersion($package, $requestedVersion);
         if ($resolved === null) {
-            return ['ok' => false, 'message' => sprintf('Could not resolve npm version for %s.', $package)];
+            return self::fail($libraryId, sprintf(
+                /* translators: %s: npm package name */
+                __('Could not resolve npm version for %s.', 'wpicons'),
+                $package
+            ));
         }
 
         $existing = self::version($libraryId);
         if ($existing === $resolved && self::count($libraryId) > 0) {
+            self::clearError($libraryId);
+
             return ['ok' => true, 'message' => 'Catalog already up to date.', 'version' => $resolved, 'count' => self::count($libraryId)];
         }
 
         $tarball = self::npmTarball($package, $resolved);
         if ($tarball === null) {
-            return ['ok' => false, 'message' => sprintf('Could not find tarball for %s@%s.', $package, $resolved)];
+            return self::fail($libraryId, sprintf(
+                /* translators: 1: npm package name, 2: version */
+                __('Could not find tarball for %1$s@%2$s.', 'wpicons'),
+                $package,
+                $resolved
+            ));
         }
 
         $parsed = self::downloadAndParse($library, $tarball);
         if ($parsed === null || $parsed['variants'] === []) {
-            return ['ok' => false, 'message' => 'Could not parse icon SVGs from the CDN package.'];
+            return self::fail($libraryId, __('Could not parse icon SVGs from the CDN package.', 'wpicons'));
         }
 
         $dir = self::storageDir();
         if ($dir === null) {
-            return ['ok' => false, 'message' => 'Could not create the local CDN cache directory.'];
+            return self::fail($libraryId, __('Could not create the local CDN cache directory.', 'wpicons'));
         }
 
         $count = 0;
@@ -335,7 +415,7 @@ final class CdnCatalog
         $json = wp_json_encode($payload);
 
         if (!\is_string($json) || file_put_contents($file, $json) === false) {
-            return ['ok' => false, 'message' => 'Could not write the CDN catalog cache.'];
+            return self::fail($libraryId, __('Could not write the CDN catalog cache.', 'wpicons'));
         }
 
         $meta = self::meta();
@@ -346,6 +426,7 @@ final class CdnCatalog
             'file' => $file,
         ];
         update_option(self::META_OPTION, $meta, false);
+        self::clearError($libraryId);
         unset(self::$cache[$libraryId]);
 
         return [
@@ -365,6 +446,7 @@ final class CdnCatalog
             }
         }
         delete_option(self::META_OPTION);
+        delete_option(self::ERROR_OPTION);
 
         $dir = self::storageDir();
         if ($dir && is_dir($dir)) {

@@ -6,6 +6,7 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 
 delete_option('wp_icons__settings');
 delete_option('wp_icons__cdn_meta');
+delete_option('wp_icons__cdn_errors');
 delete_transient('wp_icons__npm_versions');
 
 global $wpdb;

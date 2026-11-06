@@ -1,7 +1,7 @@
 {
     "name": "wp-icons",
     "description": "Adds icon elements to place on pages, uses icons from Lucide Icons, Material Icons and other various icon libraries. Integrates with some WordPress themes like Flatsome.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "Kim Lukas Myrvold",
     "keywords": [
         "wordpress plugin",
